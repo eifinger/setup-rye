@@ -6580,7 +6580,7 @@ function setupRye() {
             const pathForGunzip = `${downloadPath}.gz`;
             yield io.mv(downloadPath, pathForGunzip);
             yield exec.exec("gunzip", [pathForGunzip]);
-            fs.chmodSync(downloadPath, 755);
+            fs.chmodSync(downloadPath, 777);
             const cachedPath = yield installRye(downloadPath, arch);
             core.addPath(cachedPath);
             core.info(`Added ${cachedPath} to the path`);
