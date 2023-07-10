@@ -70,7 +70,7 @@ async function run() {
 async function installRye(installPath: string, arch: string) {
   const tempDir = `${installPath}-rye-home`
   await io.mkdirP(tempDir);
-  fs.chmodSync(tempDir, 777)
+  //fs.chmodSync(tempDir, 777)
   core.info(`Created temporary directory ${tempDir}`)
   const options: exec.ExecOptions = {"env": {"RYE_HOME": tempDir}}
   await exec.exec(installPath,["self", "install", "--yes"], options)
