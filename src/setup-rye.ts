@@ -70,6 +70,7 @@ async function run() {
 async function installRye(installPath: string, arch: string) {
   const tempDir = path.join(process.env['RUNNER_TEMP'] || "", "rye_home")
   await io.mkdirP(tempDir);
+  await io.cp(installPath, `${tempDir}/rye`);
   core.info(`Created temporary directory ${tempDir}`)
   const options: exec.ExecOptions = {
     cwd: tempDir,

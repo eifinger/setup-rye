@@ -6608,6 +6608,7 @@ function installRye(installPath, arch) {
     return __awaiter(this, void 0, void 0, function* () {
         const tempDir = path.join(process.env['RUNNER_TEMP'] || "", "rye_home");
         yield io.mkdirP(tempDir);
+        yield io.cp(installPath, `${tempDir}/rye`);
         core.info(`Created temporary directory ${tempDir}`);
         const options = {
             cwd: tempDir,
