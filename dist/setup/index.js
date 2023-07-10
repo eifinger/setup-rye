@@ -6579,7 +6579,7 @@ function setupRye() {
             const pathForGunzip = `${downloadPath}.gz`;
             yield io.mv(downloadPath, pathForGunzip);
             yield exec.exec("gunzip", [pathForGunzip]);
-            fs.chmodSync(downloadPath, 755);
+            fs.chmodSync(downloadPath, 777);
             const cachedPath = yield installRye(downloadPath, arch);
             core.addPath(cachedPath);
             core.info(`Added ${cachedPath} to the path`);
@@ -6607,6 +6607,7 @@ function installRye(installPath, arch) {
     return __awaiter(this, void 0, void 0, function* () {
         const tempDir = `${installPath}-rye-home`;
         yield io.mkdirP(tempDir);
+        fs.chmodSync(tempDir, 755);
         const options = { "env": { "RYE_HOME": tempDir } };
         yield exec.exec(installPath, ["self", "install", "--yes"], options);
         const cachedPath = yield tc.cacheDir(tempDir, "rye", "0.10.0", arch);
