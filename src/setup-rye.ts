@@ -68,13 +68,12 @@ async function run() {
   }
 
 async function installRye(installPath: string, arch: string) {
-  const tempDir = "rye";
-  await io.mkdirP(tempDir);
-  const options: exec.ExecOptions = {"env": {"RYE_HOME": tempDir}}
+  await io.mkdirP(installPath);
+  const options: exec.ExecOptions = {"env": {"RYE_HOME": installPath}}
   await exec.exec(installPath,["self", "install", "--yes"], options)
 
   const cachedPath = await tc.cacheDir(
-    tempDir,
+    installPath,
     "rye",
     "0.10.0",
     arch
