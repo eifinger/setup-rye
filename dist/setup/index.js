@@ -6610,7 +6610,7 @@ function installRye(installPath, arch) {
         fs.chmodSync(tempDir, 755);
         core.info(`Created temporary directory ${tempDir}`);
         const options = { "env": { "RYE_HOME": tempDir } };
-        yield exec.exec(installPath, ["self", "install", "--yes"], options);
+        yield exec.exec(installPath, ["self", "install", "--yes"]);
         const cachedPath = yield tc.cacheDir(tempDir, "rye", "0.10.0", arch);
         return cachedPath;
     });
