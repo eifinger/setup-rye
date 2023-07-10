@@ -6547,7 +6547,6 @@ const tc = __importStar(__nccwpck_require__(7784));
 const exec = __importStar(__nccwpck_require__(1514));
 const io = __importStar(__nccwpck_require__(7436));
 const os = __importStar(__nccwpck_require__(2037));
-const fs = __importStar(__nccwpck_require__(7147));
 const path = __importStar(__nccwpck_require__(1017));
 const utils_1 = __nccwpck_require__(1314);
 function run() {
@@ -6580,7 +6579,7 @@ function setupRye() {
             const pathForGunzip = `${downloadPath}.gz`;
             yield io.mv(downloadPath, pathForGunzip);
             yield exec.exec("gunzip", [pathForGunzip]);
-            fs.chmodSync(downloadPath, 777);
+            yield exec.exec("chmod", ["+x", downloadPath]);
             const cachedPath = yield installRye(downloadPath, arch);
             core.addPath(cachedPath);
             core.info(`Added ${cachedPath} to the path`);

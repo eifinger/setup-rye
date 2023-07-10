@@ -41,7 +41,7 @@ async function run() {
     const pathForGunzip = `${downloadPath}.gz`
     await io.mv(downloadPath, pathForGunzip);
     await exec.exec("gunzip", [pathForGunzip])
-    fs.chmodSync(downloadPath, 777)
+    await exec.exec("chmod", ["+x", downloadPath])
 
     const cachedPath = await installRye(downloadPath, arch);
     core.addPath(cachedPath);
