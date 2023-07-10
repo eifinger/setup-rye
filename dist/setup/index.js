@@ -6548,6 +6548,7 @@ const exec = __importStar(__nccwpck_require__(1514));
 const io = __importStar(__nccwpck_require__(7436));
 const os = __importStar(__nccwpck_require__(2037));
 const fs = __importStar(__nccwpck_require__(7147));
+const path = __importStar(__nccwpck_require__(1017));
 const utils_1 = __nccwpck_require__(1314);
 function run() {
     var _a;
@@ -6605,16 +6606,14 @@ function setupRye() {
 exports.setupRye = setupRye;
 function installRye(installPath, arch) {
     return __awaiter(this, void 0, void 0, function* () {
-        const tempDir = `${installPath}-rye-home`;
+        const tempDir = path.join(process.env['RUNNER_TEMP'] || "", "rye_home");
         yield io.mkdirP(tempDir);
-        fs.chownSync(tempDir, 1001, 121);
-        yield io.cp(installPath, `${tempDir}/rye`);
         core.info(`Created temporary directory ${tempDir}`);
         const options = {
             cwd: tempDir,
             env: Object.assign(Object.assign({}, process.env), { "RYE_HOME": tempDir })
         };
-        yield exec.exec(`${tempDir}/rye`, ["self", "install", "--yes"], options);
+        yield exec.exec(installPath, ["self", "install", "--yes"], options);
         const cachedPath = yield tc.cacheDir(tempDir, "rye", "0.10.0", arch);
         return cachedPath;
     });

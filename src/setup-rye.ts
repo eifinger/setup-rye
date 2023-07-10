@@ -4,9 +4,9 @@ import * as exec from '@actions/exec';
 import * as io from '@actions/io';
 import * as os from 'os';
 import * as fs from "fs"
+import * as path from 'path'
 import {
   IS_MAC,
-  IS_WINDOWS,
 } from './utils';
 
 async function run() {
@@ -68,17 +68,15 @@ async function run() {
   }
 
 async function installRye(installPath: string, arch: string) {
-  const tempDir = `${installPath}-rye-home`
+  const tempDir = path.join(process.env['RUNNER_TEMP'] || "", "rye_home")
   await io.mkdirP(tempDir);
-  fs.chownSync(tempDir, 1001, 121)
-  await io.cp(installPath, `${tempDir}/rye`);
   core.info(`Created temporary directory ${tempDir}`)
   const options: exec.ExecOptions = {
     cwd: tempDir,
     env: {
       ...process.env,
     "RYE_HOME": tempDir}}
-  await exec.exec(`${tempDir}/rye`,["self", "install", "--yes"], options)
+  await exec.exec(installPath,["self", "install", "--yes"], options)
 
   const cachedPath = await tc.cacheDir(
     tempDir,
