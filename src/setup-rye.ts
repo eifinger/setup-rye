@@ -41,7 +41,7 @@ async function run() {
     const pathForGunzip = `${downloadPath}.gz`
     await io.mv(downloadPath, pathForGunzip);
     await exec.exec("gunzip", [pathForGunzip])
-    fs.chmodSync(downloadPath, 777)
+    fs.chmodSync(downloadPath, 755)
 
     const cachedPath = await installRye(downloadPath, arch);
     core.addPath(cachedPath);
@@ -73,7 +73,7 @@ async function installRye(installPath: string, arch: string) {
   //fs.chmodSync(tempDir, 777)
   core.info(`Created temporary directory ${tempDir}`)
   const options: exec.ExecOptions = {"env": {"RYE_HOME": tempDir}}
-  await exec.exec(installPath,["self", "install", "--yes"])
+  await exec.exec(installPath,["self", "install", "--yes"], options)
 
   const cachedPath = await tc.cacheDir(
     tempDir,
