@@ -6548,17 +6548,8 @@ const exec = __importStar(__nccwpck_require__(1514));
 const io = __importStar(__nccwpck_require__(7436));
 const os = __importStar(__nccwpck_require__(2037));
 const path = __importStar(__nccwpck_require__(1017));
-const utils_1 = __nccwpck_require__(1314);
 function run() {
-    var _a;
     return __awaiter(this, void 0, void 0, function* () {
-        if (utils_1.IS_MAC) {
-            process.env['AGENT_TOOLSDIRECTORY'] = '/Users/runner/hostedtoolcache';
-        }
-        if ((_a = process.env.AGENT_TOOLSDIRECTORY) === null || _a === void 0 ? void 0 : _a.trim()) {
-            process.env['RUNNER_TOOL_CACHE'] = process.env['AGENT_TOOLSDIRECTORY'];
-        }
-        core.debug(`Rye is expected to be installed into ${process.env['RUNNER_TOOL_CACHE']}`);
         try {
             yield setupRye();
         }
@@ -6569,7 +6560,7 @@ function run() {
 }
 function setupRye() {
     return __awaiter(this, void 0, void 0, function* () {
-        const binary = "rye-x86_64-linux";
+        const binary = 'rye-x86_64-linux';
         const downloadUrl = `https://github.com/mitsuhiko/rye/releases/latest/download/${binary}.gz`;
         core.info(`Downloading Rye from "${downloadUrl}" ...`);
         try {
@@ -6578,8 +6569,8 @@ function setupRye() {
             core.info('Extracting downloaded archive...');
             const pathForGunzip = `${downloadPath}.gz`;
             yield io.mv(downloadPath, pathForGunzip);
-            yield exec.exec("gunzip", [pathForGunzip]);
-            yield exec.exec("chmod", ["+x", downloadPath]);
+            yield exec.exec('gunzip', [pathForGunzip]);
+            yield exec.exec('chmod', ['+x', downloadPath]);
             const cachedPath = yield installRye(downloadPath, arch);
             core.addPath(cachedPath);
             core.info(`Added ${cachedPath} to the path`);
@@ -6605,36 +6596,20 @@ function setupRye() {
 exports.setupRye = setupRye;
 function installRye(installPath, arch) {
     return __awaiter(this, void 0, void 0, function* () {
-        const tempDir = path.join(process.env['RUNNER_TEMP'] || "", "rye_home");
+        const tempDir = path.join(process.env['RUNNER_TEMP'] || '', 'rye_home');
         yield io.mkdirP(tempDir);
         yield io.cp(installPath, `${tempDir}/rye`);
         core.info(`Created temporary directory ${tempDir}`);
         const options = {
             cwd: tempDir,
-            env: Object.assign(Object.assign({}, process.env), { "RYE_HOME": tempDir })
+            env: Object.assign(Object.assign({}, process.env), { RYE_HOME: tempDir })
         };
-        yield exec.exec(installPath, ["self", "install", "--yes"], options);
-        const cachedPath = yield tc.cacheDir(tempDir, "rye", "0.10.0", arch);
+        yield exec.exec(installPath, ['self', 'install', '--yes'], options);
+        const cachedPath = yield tc.cacheDir(tempDir, 'rye', '0.10.0', arch);
         return cachedPath;
     });
 }
 run();
-
-
-/***/ }),
-
-/***/ 1314:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.WINDOWS_PLATFORMS = exports.WINDOWS_ARCHS = exports.IS_MAC = exports.IS_LINUX = exports.IS_WINDOWS = void 0;
-exports.IS_WINDOWS = process.platform === 'win32';
-exports.IS_LINUX = process.platform === 'linux';
-exports.IS_MAC = process.platform === 'darwin';
-exports.WINDOWS_ARCHS = ['x86', 'x64'];
-exports.WINDOWS_PLATFORMS = ['win32', 'win64'];
 
 
 /***/ }),

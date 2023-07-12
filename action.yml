@@ -1,11 +1,6 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
-inputs:
-  milliseconds: # change this
-    required: true
-    description: 'input description here'
-    default: 'default value if applicable'
+name: 'setup-rye'
+description: 'Set up and cache rye and add it to the PATH'
+author: 'eifinger'
 runs:
   using: 'node16'
   main: 'dist/setup/index.js'

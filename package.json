@@ -9,8 +9,7 @@
     "format": "prettier --write '**/*.ts'",
     "format-check": "prettier --check '**/*.ts'",
     "lint": "eslint src/**/*.ts",
-    "package": "ncc build --source-map --license licenses.txt",
-    "package-eifinger": "ncc build -o dist/setup src/setup-rye.ts",
+    "package": "ncc build -o dist/setup src/setup-rye.ts",
     "test": "jest",
     "all": "npm run build && npm run format && npm run lint && npm run package && npm test"
   },
