@@ -6550,22 +6550,34 @@ const os = __importStar(__nccwpck_require__(2037));
 const path = __importStar(__nccwpck_require__(1017));
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
+        const arch = core.getInput('architecture') || os.arch();
         try {
-            yield setupRye();
+            const wasAdded = addRyeToPath(arch);
+            if (!wasAdded) {
+                yield setupRye(arch);
+            }
         }
         catch (err) {
             core.setFailed(err.message);
         }
     });
 }
-function setupRye() {
+function addRyeToPath(arch) {
+    const ryePath = tc.find('rye', '0.11.0', arch);
+    if (ryePath) {
+        core.addPath(ryePath);
+        core.info(`Added ${ryePath} to the path`);
+        return true;
+    }
+    return false;
+}
+function setupRye(arch) {
     return __awaiter(this, void 0, void 0, function* () {
         const binary = 'rye-x86_64-linux';
         const downloadUrl = `https://github.com/mitsuhiko/rye/releases/latest/download/${binary}.gz`;
         core.info(`Downloading Rye from "${downloadUrl}" ...`);
         try {
             const downloadPath = yield tc.downloadTool(downloadUrl);
-            const arch = core.getInput('architecture') || os.arch();
             core.info('Extracting downloaded archive...');
             const pathForGunzip = `${downloadPath}.gz`;
             yield io.mv(downloadPath, pathForGunzip);
@@ -6605,7 +6617,7 @@ function installRye(installPath, arch) {
             env: Object.assign(Object.assign({}, process.env), { RYE_HOME: tempDir })
         };
         yield exec.exec(installPath, ['self', 'install', '--yes'], options);
-        const cachedPath = yield tc.cacheDir(tempDir, 'rye', '0.10.0', arch);
+        const cachedPath = yield tc.cacheDir(tempDir, 'rye', '0.11.0', arch);
         return cachedPath;
     });
 }

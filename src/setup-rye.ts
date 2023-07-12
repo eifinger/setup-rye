@@ -6,21 +6,34 @@ import * as os from 'os'
 import * as path from 'path'
 
 async function run(): Promise<void> {
+  const arch: string = core.getInput('architecture') || os.arch()
   try {
-    await setupRye()
+    const wasAdded = addRyeToPath(arch)
+    if (!wasAdded) {
+      await setupRye(arch)
+    }
   } catch (err) {
     core.setFailed((err as Error).message)
   }
 }
 
-export async function setupRye(): Promise<void> {
+function addRyeToPath(arch: string): boolean {
+  const ryePath = tc.find('rye', '0.11.0', arch)
+  if (ryePath) {
+    core.addPath(ryePath)
+    core.info(`Added ${ryePath} to the path`)
+    return true
+  }
+  return false
+}
+
+export async function setupRye(arch: string): Promise<void> {
   const binary = 'rye-x86_64-linux'
   const downloadUrl = `https://github.com/mitsuhiko/rye/releases/latest/download/${binary}.gz`
   core.info(`Downloading Rye from "${downloadUrl}" ...`)
 
   try {
     const downloadPath = await tc.downloadTool(downloadUrl)
-    const arch: string = core.getInput('architecture') || os.arch()
 
     core.info('Extracting downloaded archive...')
     const pathForGunzip = `${downloadPath}.gz`
@@ -66,7 +79,7 @@ async function installRye(installPath: string, arch: string): Promise<string> {
   }
   await exec.exec(installPath, ['self', 'install', '--yes'], options)
 
-  const cachedPath = await tc.cacheDir(tempDir, 'rye', '0.10.0', arch)
+  const cachedPath = await tc.cacheDir(tempDir, 'rye', '0.11.0', arch)
 
   return cachedPath
 }
