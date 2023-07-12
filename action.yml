@@ -1,6 +1,10 @@
 name: 'setup-rye'
 description: 'Set up and cache rye and add it to the PATH'
 author: 'eifinger'
+inputs:
+  version: 
+    description: 'The version of rye to install'
+    default: 'latest'
 runs:
   using: 'node16'
   main: 'dist/setup/index.js'

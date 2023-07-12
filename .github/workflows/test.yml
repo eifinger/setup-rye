@@ -25,3 +25,13 @@ jobs:
       - uses: ./
       - run: |
           which rye
+      - uses: ./
+        with:
+          version: '0.9.0'
+      - run: |
+          which rye
+      - uses: ./
+        with:
+          version: '0.10.0'
+      - run: |
+          which rye
