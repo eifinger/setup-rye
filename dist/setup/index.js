@@ -6563,6 +6563,8 @@ function run() {
     });
 }
 function addRyeToPath(arch) {
+    const installedVersions = tc.findAllVersions('rye');
+    core.info(`Installed versions: ${installedVersions}`);
     const ryePath = tc.find('rye', '0.11.0', arch);
     if (ryePath) {
         core.addPath(ryePath);
