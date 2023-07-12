@@ -6549,6 +6549,8 @@ const io = __importStar(__nccwpck_require__(7436));
 const path = __importStar(__nccwpck_require__(1017));
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
+        const manifest = yield tc.getManifestFromRepo('mitsuhiko', 'rye');
+        core.info(`Manifest: ${JSON.stringify(manifest)}`);
         const platform = 'linux';
         const arch = 'x64';
         const version = core.getInput('version');

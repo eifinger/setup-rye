@@ -5,6 +5,8 @@ import * as io from '@actions/io'
 import * as path from 'path'
 
 async function run(): Promise<void> {
+  const manifest = await tc.getManifestFromRepo('mitsuhiko', 'rye')
+  core.info(`Manifest: ${JSON.stringify(manifest)}`)
   const platform = 'linux'
   const arch = 'x64'
   const version = core.getInput('version')
