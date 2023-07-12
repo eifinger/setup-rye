@@ -19,6 +19,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - run: |
+          which rye
+        continue-on-error: true
       - uses: ./
       - run: |
           which rye
