@@ -1,4 +1,4 @@
-name: 'setup-rye'
+name: 'install-rye'
 description: 'Set up and cache rye and add it to the PATH'
 author: 'eifinger'
 inputs:
