@@ -2,8 +2,9 @@ import * as core from '@actions/core'
 import * as tc from '@actions/tool-cache'
 import * as exec from '@actions/exec'
 import * as io from '@actions/io'
-import * as github from '@actions/github'
+import * as octokit from '@octokit/rest'
 import * as path from 'path'
+import fetch from 'node-fetch'
 import {OWNER, REPO} from './utils'
 
 async function run(): Promise<void> {
@@ -41,11 +42,11 @@ async function resolveVersion(versionInput: string): Promise<string> {
 }
 
 async function getAvailableVersions(): Promise<string[]> {
-  if (process.env.GITHUB_TOKEN === undefined) {
-    throw new Error('GITHUB_TOKEN env variable is not set')
-  }
-  const octoKit = github.getOctokit(process.env.GITHUB_TOKEN)
-  const response = await octoKit.rest.repos.listReleases({
+  const githubClient = new octokit.Octokit({
+    userAgent: 'install-rye',
+    request: {fetch}
+  })
+  const response = await githubClient.rest.repos.listReleases({
     owner: OWNER,
     repo: REPO
   })
