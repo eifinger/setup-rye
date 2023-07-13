@@ -1,4 +1,4 @@
-# install-rye
+# setup-rye
 
 Set up your GitHub Actions workflow with a specific version of [rye](https://rye-up.com/).
 
@@ -13,7 +13,7 @@ Set up your GitHub Actions workflow with a specific version of [rye](https://rye
 - name: Checkout your repository
   uses: actions/checkout@v3
 - name: Install the latest version of rye
-  uses: eifinger/install-rye@v1
+  uses: eifinger/setup-rye@v1
 - name: Sync your dependencies
   run: rye sync
 ```
@@ -22,7 +22,7 @@ You can also specify a specific version of rye
 
 ```yaml
 - name: Install a specific version
-  uses: eifinger/install-rye@v1
+  uses: eifinger/setup-rye@v1
   with:
     version: '0.10.0'
 ```

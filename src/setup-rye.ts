@@ -43,7 +43,7 @@ async function resolveVersion(versionInput: string): Promise<string> {
 
 async function getAvailableVersions(): Promise<string[]> {
   const githubClient = new octokit.Octokit({
-    userAgent: 'install-rye',
+    userAgent: 'setup-rye',
     request: {fetch}
   })
   const response = await githubClient.rest.repos.listReleases({

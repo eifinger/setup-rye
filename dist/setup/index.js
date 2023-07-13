@@ -14801,7 +14801,7 @@ function resolveVersion(versionInput) {
 function getAvailableVersions() {
     return __awaiter(this, void 0, void 0, function* () {
         const githubClient = new octokit.Octokit({
-            userAgent: 'install-rye',
+            userAgent: 'setup-rye',
             request: { fetch: node_fetch_1.default }
         });
         const response = yield githubClient.rest.repos.listReleases({

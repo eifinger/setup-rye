@@ -1,4 +1,4 @@
-name: 'install-rye'
+name: 'Python Setup Rye'
 description: 'Set up and cache rye and add it to the PATH'
 author: 'eifinger'
 inputs:
@@ -8,3 +8,6 @@ inputs:
 runs:
   using: 'node16'
   main: 'dist/setup/index.js'
+branding:
+  icon: 'package'
+  color: 'blue'
