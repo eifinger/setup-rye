@@ -2,54 +2,88 @@ import * as core from '@actions/core'
 import * as tc from '@actions/tool-cache'
 import * as exec from '@actions/exec'
 import * as io from '@actions/io'
+import * as github from '@actions/github'
 import * as path from 'path'
+import {OWNER, REPO} from './utils'
 
 async function run(): Promise<void> {
-  const manifest = await tc.getManifestFromRepo('mitsuhiko', 'rye')
-  core.info(`Manifest: ${JSON.stringify(manifest)}`)
   const platform = 'linux'
   const arch = 'x64'
-  const version = core.getInput('version')
+  const versionInput = core.getInput('version')
+
   try {
-    const wasAdded = addRyeToPath(arch, version)
-    if (!wasAdded) {
-      await setupRye(platform, arch, version)
+    const version = await resolveVersion(versionInput)
+    let cachedPath = tryGetFromCache(arch, version)
+    if (cachedPath) {
+      core.info(`Found Rye in cache for ${version}`)
+    } else {
+      cachedPath = await setupRye(platform, arch, version)
     }
+    addRyeToPath(cachedPath)
   } catch (err) {
     core.setFailed((err as Error).message)
   }
 }
 
-function addRyeToPath(arch: string, version: string): boolean {
-  core.info(`Trying to get Rye from cache for ${version}...`)
-  const cachedVersions = tc.findAllVersions('rye', arch)
-  core.info(`Cached versions: ${cachedVersions}`)
-  const ryePath = tc.find('rye', version, arch)
-  if (ryePath) {
-    core.addPath(ryePath)
-    core.info(`Added ${ryePath} to the path`)
-    return true
+async function resolveVersion(versionInput: string): Promise<string> {
+  const availableVersion = await getAvailableVersions()
+  if (!availableVersion.includes(versionInput)) {
+    if (versionInput === 'latest') {
+      core.info(`Latest version is ${availableVersion[0]}`)
+      return availableVersion[0]
+    } else {
+      throw new Error(
+        `Version ${versionInput} is not available. Available version are: ${availableVersion}`
+      )
+    }
   }
-  return false
+  return versionInput
 }
 
-export async function setupRye(
+async function getAvailableVersions(): Promise<string[]> {
+  if (process.env.GITHUB_TOKEN === undefined) {
+    throw new Error('GITHUB_TOKEN env variable is not set')
+  }
+  const octoKit = github.getOctokit(process.env.GITHUB_TOKEN)
+  const response = await octoKit.rest.repos.listReleases({
+    owner: OWNER,
+    repo: REPO
+  })
+  const releases = response.data.map(release => release.tag_name)
+  return releases
+}
+
+function tryGetFromCache(arch: string, version: string): string | undefined {
+  core.debug(`Trying to get Rye from cache for ${version}...`)
+  const cachedVersions = tc.findAllVersions('rye', arch)
+  core.debug(`Cached versions: ${cachedVersions}`)
+  return tc.find('rye', version, arch)
+}
+
+async function setupRye(
   platform: string,
   arch: string,
   version: string
-): Promise<void> {
+): Promise<string> {
+  const downloadPath = await downloadVersion(platform, arch, version)
+  const cachedPath = await installRye(downloadPath, arch, version)
+  return cachedPath
+}
+
+async function downloadVersion(
+  platform: string,
+  arch: string,
+  version: string
+): Promise<string> {
   const binary = `rye-x86_64-${platform}`
-  let downloadUrl = `https://github.com/mitsuhiko/rye/releases/download/${version}/${binary}.gz`
-  if (version === 'latest') {
-    downloadUrl = `https://github.com/mitsuhiko/rye/releases/latest/download/${binary}.gz`
-  }
+  const downloadUrl = `https://github.com/mitsuhiko/rye/releases/download/${version}/${binary}.gz`
   core.info(`Downloading Rye from "${downloadUrl}" ...`)
 
   try {
     const downloadPath = await tc.downloadTool(downloadUrl)
 
     await extract(downloadPath)
-    await installRye(downloadPath, arch, version)
+    return downloadPath
   } catch (err) {
     if (err instanceof Error) {
       // Rate limit?
@@ -84,11 +118,9 @@ async function installRye(
   arch: string,
   version: string
 ): Promise<string> {
-  const tempDir = path.join(process.env['RUNNER_TEMP'] || '', 'rye_home')
+  const tempDir = path.join(process.env['RUNNER_TEMP'] || '', 'rye_temp_home')
   await io.mkdirP(tempDir)
-  core.info(
-    `Created temporary directory ${tempDir} to install rye into before moving to tools cache`
-  )
+  core.debug(`Created temporary directory ${tempDir}`)
   const options: exec.ExecOptions = {
     cwd: tempDir,
     env: {
@@ -99,11 +131,14 @@ async function installRye(
   core.info(`Installing Rye into ${tempDir}`)
   await exec.exec(downloadPath, ['self', 'install', '--yes'], options)
 
-  core.info('Moving installed Rye to cache')
   const cachedPath = await tc.cacheDir(tempDir, 'rye', version, arch)
-  core.addPath(cachedPath)
-  core.info(`Added ${cachedPath} to the path`)
+  core.info(`Moved Rye into ${cachedPath}`)
   return cachedPath
+}
+
+function addRyeToPath(cachedPath: string): void {
+  core.addPath(`${cachedPath}/shims`)
+  core.info(`Added ${cachedPath}/shims to the path`)
 }
 
 run()

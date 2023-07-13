@@ -19,19 +19,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - run: |
+      - name: Should not be on path
+        run: |
           which rye
         continue-on-error: true
-      - uses: ./
+      - name: Install latest
+        uses: ./
       - run: |
           which rye
-      - uses: ./
+      - name: Install specific version
+        uses: ./
         with:
           version: '0.9.0'
-      - run: |
-          which rye
-      - uses: ./
-        with:
-          version: '0.10.0'
       - run: |
           which rye
