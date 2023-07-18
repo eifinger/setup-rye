@@ -2,6 +2,10 @@
 
 Set up your GitHub Actions workflow with a specific version of [rye](https://rye-up.com/).
 
+* Install a version of rye and add it to the path
+* Cache the installed version of rye to speed up consecutive runs on self-hosted runners
+* Register problem matchers for error output
+
 ## Limitations
 
 1. Currently only linux is supported see [issue #10](https://github.com/eifinger/setup-rye/issues/10)
@@ -10,12 +14,8 @@ Set up your GitHub Actions workflow with a specific version of [rye](https://rye
 ## Usage
 
 ```yaml
-- name: Checkout your repository
-  uses: actions/checkout@v3
 - name: Install the latest version of rye
   uses: eifinger/setup-rye@v1
-- name: Sync your dependencies
-  run: rye sync
 ```
 
 You can also specify a specific version of rye
