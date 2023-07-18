@@ -14777,6 +14777,7 @@ function run() {
                 cachedPath = yield setupRye(platform, arch, version);
             }
             addRyeToPath(cachedPath);
+            addMatchers();
         }
         catch (err) {
             core.setFailed(err.message);
@@ -14881,6 +14882,10 @@ function installRye(downloadPath, arch, version) {
 function addRyeToPath(cachedPath) {
     core.addPath(`${cachedPath}/shims`);
     core.info(`Added ${cachedPath}/shims to the path`);
+}
+function addMatchers() {
+    const matchersPath = path.join(__dirname, '../..', '.github');
+    core.info(`##[add-matcher]${path.join(matchersPath, 'python.json')}`);
 }
 run();
 

@@ -21,6 +21,7 @@ async function run(): Promise<void> {
       cachedPath = await setupRye(platform, arch, version)
     }
     addRyeToPath(cachedPath)
+    addMatchers()
   } catch (err) {
     core.setFailed((err as Error).message)
   }
@@ -140,6 +141,11 @@ async function installRye(
 function addRyeToPath(cachedPath: string): void {
   core.addPath(`${cachedPath}/shims`)
   core.info(`Added ${cachedPath}/shims to the path`)
+}
+
+function addMatchers(): void {
+  const matchersPath = path.join(__dirname, '../..', '.github')
+  core.info(`##[add-matcher]${path.join(matchersPath, 'python.json')}`)
 }
 
 run()
