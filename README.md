@@ -24,7 +24,7 @@ You can also specify a specific version of rye
 - name: Install a specific version
   uses: eifinger/setup-rye@v1
   with:
-    version: '0.10.0'
+    version: '0.11.0'
 ```
 
 ## How it works
