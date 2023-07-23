@@ -15,7 +15,7 @@ jobs:
           npm install
       - run: |
           npm run all
-  test: # make sure the action works on a clean machine without building
+  test-latest:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -27,9 +27,22 @@ jobs:
         uses: ./
       - run: |
           which rye
+  test-specific-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
       - name: Install specific version
         uses: ./
         with:
           version: '0.11.0'
       - run: |
           which rye
+  test-checksum:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Checksum matches expected
+        uses: ./
+        with:
+          version: '0.11.0'
+          checksum: '00e795573477a2fe2b3c0ac748240364c3369218d314d1df47d2653764e9bfb1'
