@@ -27,6 +27,18 @@ You can also specify a specific version of rye
     version: '0.11.0'
 ```
 
+You can also specify a checksum to validate the downloaded file.
+The sha265 hashes can be found on the [releases page](https://github.com/mitsuhiko/rye/releases)
+of the rye repo.
+
+```yaml
+- name: Install a specific version and validate the checksum
+  uses: eifinger/setup-rye@v1
+  with:
+    version: '0.11.0'
+    checksum: '00e795573477a2fe2b3c0ac748240364c3369218d314d1df47d2653764e9bfb1'
+```
+
 ## How it works
 
 This action downloads rye from the releases of the [rye repo](https://github.com/mitsuhiko/rye) and uses the [GitHub Actions Toolkit](https://github.com/actions/toolkit) to cache it as a tool to speed up consecutive runs especially on self-hosted runners.

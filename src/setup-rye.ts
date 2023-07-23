@@ -5,12 +5,13 @@ import * as io from '@actions/io'
 import * as octokit from '@octokit/rest'
 import * as path from 'path'
 import fetch from 'node-fetch'
-import {OWNER, REPO} from './utils'
+import {OWNER, REPO, validateCheckSum} from './utils'
 
 async function run(): Promise<void> {
   const platform = 'linux'
   const arch = 'x64'
   const versionInput = core.getInput('version')
+  const checkSum = core.getInput('checksum')
 
   try {
     const version = await resolveVersion(versionInput)
@@ -18,7 +19,7 @@ async function run(): Promise<void> {
     if (cachedPath) {
       core.info(`Found Rye in cache for ${version}`)
     } else {
-      cachedPath = await setupRye(platform, arch, version)
+      cachedPath = await setupRye(platform, arch, version, checkSum)
     }
     addRyeToPath(cachedPath)
     addMatchers()
@@ -65,9 +66,10 @@ function tryGetFromCache(arch: string, version: string): string | undefined {
 async function setupRye(
   platform: string,
   arch: string,
-  version: string
+  version: string,
+  checkSum: string | undefined
 ): Promise<string> {
-  const downloadPath = await downloadVersion(platform, arch, version)
+  const downloadPath = await downloadVersion(platform, arch, version, checkSum)
   const cachedPath = await installRye(downloadPath, arch, version)
   return cachedPath
 }
@@ -75,7 +77,8 @@ async function setupRye(
 async function downloadVersion(
   platform: string,
   arch: string,
-  version: string
+  version: string,
+  checkSum: string | undefined
 ): Promise<string> {
   const binary = `rye-x86_64-${platform}`
   const downloadUrl = `https://github.com/mitsuhiko/rye/releases/download/${version}/${binary}.gz`
@@ -83,6 +86,14 @@ async function downloadVersion(
 
   try {
     const downloadPath = await tc.downloadTool(downloadUrl)
+    if (checkSum !== undefined && checkSum !== '') {
+      const isValid = await validateCheckSum(downloadPath, checkSum)
+      if (!isValid) {
+        throw new Error(
+          `Checksum for ${downloadPath} did not match ${checkSum}.`
+        )
+      }
+    }
 
     await extract(downloadPath)
     return downloadPath

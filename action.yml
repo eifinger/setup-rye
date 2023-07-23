@@ -5,6 +5,9 @@ inputs:
   version: 
     description: 'The version of rye to install'
     default: 'latest'
+  checksum:
+    description: 'The checksum of the rye version to install'
+    required: false
 runs:
   using: 'node16'
   main: 'dist/setup/index.js'

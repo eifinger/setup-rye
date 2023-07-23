@@ -14767,6 +14767,7 @@ function run() {
         const platform = 'linux';
         const arch = 'x64';
         const versionInput = core.getInput('version');
+        const checkSum = core.getInput('checksum');
         try {
             const version = yield resolveVersion(versionInput);
             let cachedPath = tryGetFromCache(arch, version);
@@ -14774,7 +14775,7 @@ function run() {
                 core.info(`Found Rye in cache for ${version}`);
             }
             else {
-                cachedPath = yield setupRye(platform, arch, version);
+                cachedPath = yield setupRye(platform, arch, version, checkSum);
             }
             addRyeToPath(cachedPath);
             addMatchers();
@@ -14819,20 +14820,26 @@ function tryGetFromCache(arch, version) {
     core.debug(`Cached versions: ${cachedVersions}`);
     return tc.find('rye', version, arch);
 }
-function setupRye(platform, arch, version) {
+function setupRye(platform, arch, version, checkSum) {
     return __awaiter(this, void 0, void 0, function* () {
-        const downloadPath = yield downloadVersion(platform, arch, version);
+        const downloadPath = yield downloadVersion(platform, arch, version, checkSum);
         const cachedPath = yield installRye(downloadPath, arch, version);
         return cachedPath;
     });
 }
-function downloadVersion(platform, arch, version) {
+function downloadVersion(platform, arch, version, checkSum) {
     return __awaiter(this, void 0, void 0, function* () {
         const binary = `rye-x86_64-${platform}`;
         const downloadUrl = `https://github.com/mitsuhiko/rye/releases/download/${version}/${binary}.gz`;
         core.info(`Downloading Rye from "${downloadUrl}" ...`);
         try {
             const downloadPath = yield tc.downloadTool(downloadUrl);
+            if (checkSum !== undefined && checkSum !== '') {
+                const isValid = yield (0, utils_1.validateCheckSum)(downloadPath, checkSum);
+                if (!isValid) {
+                    throw new Error(`Checksum for ${downloadPath} did not match ${checkSum}.`);
+                }
+            }
             yield extract(downloadPath);
             return downloadPath;
         }
@@ -14893,12 +14900,46 @@ run();
 /***/ }),
 
 /***/ 1314:
-/***/ ((__unused_webpack_module, exports) => {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.OWNER = exports.REPO = exports.WINDOWS_PLATFORMS = exports.WINDOWS_ARCHS = exports.IS_MAC = exports.IS_LINUX = exports.IS_WINDOWS = void 0;
+exports.validateCheckSum = exports.OWNER = exports.REPO = exports.WINDOWS_PLATFORMS = exports.WINDOWS_ARCHS = exports.IS_MAC = exports.IS_LINUX = exports.IS_WINDOWS = void 0;
+const fs = __importStar(__nccwpck_require__(7147));
+const crypto = __importStar(__nccwpck_require__(6113));
 exports.IS_WINDOWS = process.platform === 'win32';
 exports.IS_LINUX = process.platform === 'linux';
 exports.IS_MAC = process.platform === 'darwin';
@@ -14906,6 +14947,21 @@ exports.WINDOWS_ARCHS = ['x86', 'x64'];
 exports.WINDOWS_PLATFORMS = ['win32', 'win64'];
 exports.REPO = 'rye';
 exports.OWNER = 'mitsuhiko';
+function validateCheckSum(filePath, expected) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return new Promise((resolve, reject) => {
+            const hash = crypto.createHash('sha256');
+            const stream = fs.createReadStream(filePath);
+            stream.on('error', err => reject(err));
+            stream.on('data', chunk => hash.update(chunk));
+            stream.on('end', () => {
+                const actual = hash.digest('hex');
+                resolve(actual === expected);
+            });
+        });
+    });
+}
+exports.validateCheckSum = validateCheckSum;
 
 
 /***/ }),
