@@ -31,12 +31,16 @@ version-resolver:
   major:
     labels:
       - 'major'
+      - 'breaking-change'
   minor:
     labels:
       - 'minor'
+      - 'new-feature'
+      - 'enhancement'
   patch:
     labels:
       - 'patch'
+      - 'bugfix'
   default: patch
 template: |
   ## Changes
