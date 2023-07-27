@@ -1,5 +1,5 @@
 name: 'build-test'
-on: # rebuild any PRs and main branch changes
+on:
   pull_request:
   push:
     branches:
@@ -7,28 +7,44 @@ on: # rebuild any PRs and main branch changes
       - 'releases/*'
 
 jobs:
-  build: # make sure build/ci work properly
-    runs-on: ubuntu-latest
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, oracle-aarch64]
     steps:
       - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '16'
       - run: |
           npm install
       - run: |
           npm run all
   test-latest:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, oracle-aarch64]
     steps:
       - uses: actions/checkout@v3
       - name: Should not be on path
         run: |
-          which rye
-        continue-on-error: true
+          if ! which rye;
+          then
+            exit 0
+          else
+           exit 1
+          fi
       - name: Install latest
         uses: ./
       - run: |
           which rye
   test-specific-version:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, oracle-aarch64]
     steps:
       - uses: actions/checkout@v3
       - name: Install specific version
@@ -38,11 +54,22 @@ jobs:
       - run: |
           which rye
   test-checksum:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, oracle-aarch64]
+        checksum: ['00e795573477a2fe2b3c0ac748240364c3369218d314d1df47d2653764e9bfb1']
+        exclude:
+          - os: oracle-aarch64
+            checksum: '00e795573477a2fe2b3c0ac748240364c3369218d314d1df47d2653764e9bfb1'
+        include:
+          - os: oracle-aarch64
+            checksum: '7e0b1f6e3490a79c1d2600e8c04dd9ed4ea04d29d6c80f1f5a84a79736e9a21d'
+
     steps:
       - uses: actions/checkout@v3
       - name: Checksum matches expected
         uses: ./
         with:
           version: '0.11.0'
-          checksum: '00e795573477a2fe2b3c0ac748240364c3369218d314d1df47d2653764e9bfb1'
+          checksum: ${{ matrix.checksum }}

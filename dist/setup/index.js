@@ -14765,10 +14765,13 @@ const utils_1 = __nccwpck_require__(1314);
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         const platform = 'linux';
-        const arch = 'x64';
+        const arch = (0, utils_1.getArch)();
         const versionInput = core.getInput('version');
         const checkSum = core.getInput('checksum');
         try {
+            if (arch === undefined) {
+                throw new Error(`Unsupported architecture: ${process.arch}`);
+            }
             const version = yield resolveVersion(versionInput);
             let cachedPath = tryGetFromCache(arch, version);
             if (cachedPath) {
@@ -14829,7 +14832,7 @@ function setupRye(platform, arch, version, checkSum) {
 }
 function downloadVersion(platform, arch, version, checkSum) {
     return __awaiter(this, void 0, void 0, function* () {
-        const binary = `rye-x86_64-${platform}`;
+        const binary = `rye-${arch}-${platform}`;
         const downloadUrl = `https://github.com/mitsuhiko/rye/releases/download/${version}/${binary}.gz`;
         core.info(`Downloading Rye from "${downloadUrl}" ...`);
         try {
@@ -14937,7 +14940,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.validateCheckSum = exports.OWNER = exports.REPO = exports.WINDOWS_PLATFORMS = exports.WINDOWS_ARCHS = exports.IS_MAC = exports.IS_LINUX = exports.IS_WINDOWS = void 0;
+exports.getArch = exports.validateCheckSum = exports.OWNER = exports.REPO = exports.WINDOWS_PLATFORMS = exports.WINDOWS_ARCHS = exports.IS_MAC = exports.IS_LINUX = exports.IS_WINDOWS = void 0;
 const fs = __importStar(__nccwpck_require__(7147));
 const crypto = __importStar(__nccwpck_require__(6113));
 exports.IS_WINDOWS = process.platform === 'win32';
@@ -14962,6 +14965,18 @@ function validateCheckSum(filePath, expected) {
     });
 }
 exports.validateCheckSum = validateCheckSum;
+function getArch() {
+    const arch = process.arch;
+    const archMapping = {
+        ia32: 'x86',
+        x64: 'x86_64',
+        arm64: 'aarch64'
+    };
+    if (arch in archMapping) {
+        return archMapping[arch];
+    }
+}
+exports.getArch = getArch;
 
 
 /***/ }),

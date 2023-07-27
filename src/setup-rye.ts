@@ -5,15 +5,18 @@ import * as io from '@actions/io'
 import * as octokit from '@octokit/rest'
 import * as path from 'path'
 import fetch from 'node-fetch'
-import {OWNER, REPO, validateCheckSum} from './utils'
+import {Architecture, OWNER, REPO, validateCheckSum, getArch} from './utils'
 
 async function run(): Promise<void> {
   const platform = 'linux'
-  const arch = 'x64'
+  const arch = getArch()
   const versionInput = core.getInput('version')
   const checkSum = core.getInput('checksum')
 
   try {
+    if (arch === undefined) {
+      throw new Error(`Unsupported architecture: ${process.arch}`)
+    }
     const version = await resolveVersion(versionInput)
     let cachedPath = tryGetFromCache(arch, version)
     if (cachedPath) {
@@ -56,7 +59,10 @@ async function getAvailableVersions(): Promise<string[]> {
   return releases
 }
 
-function tryGetFromCache(arch: string, version: string): string | undefined {
+function tryGetFromCache(
+  arch: Architecture,
+  version: string
+): string | undefined {
   core.debug(`Trying to get Rye from cache for ${version}...`)
   const cachedVersions = tc.findAllVersions('rye', arch)
   core.debug(`Cached versions: ${cachedVersions}`)
@@ -65,7 +71,7 @@ function tryGetFromCache(arch: string, version: string): string | undefined {
 
 async function setupRye(
   platform: string,
-  arch: string,
+  arch: Architecture,
   version: string,
   checkSum: string | undefined
 ): Promise<string> {
@@ -76,11 +82,11 @@ async function setupRye(
 
 async function downloadVersion(
   platform: string,
-  arch: string,
+  arch: Architecture,
   version: string,
   checkSum: string | undefined
 ): Promise<string> {
-  const binary = `rye-x86_64-${platform}`
+  const binary = `rye-${arch}-${platform}`
   const downloadUrl = `https://github.com/mitsuhiko/rye/releases/download/${version}/${binary}.gz`
   core.info(`Downloading Rye from "${downloadUrl}" ...`)
 
