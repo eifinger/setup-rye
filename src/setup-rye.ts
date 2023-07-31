@@ -5,6 +5,7 @@ import * as io from '@actions/io'
 import * as octokit from '@octokit/rest'
 import * as path from 'path'
 import fetch from 'node-fetch'
+import {restoreCache} from './cache'
 import {Architecture, OWNER, REPO, validateCheckSum, getArch} from './utils'
 
 async function run(): Promise<void> {
@@ -12,20 +13,29 @@ async function run(): Promise<void> {
   const arch = getArch()
   const versionInput = core.getInput('version')
   const checkSum = core.getInput('checksum')
+  const enableCache = core.getInput('enable-cache') === 'true'
+  const cachePrefix = core.getInput('cache-prefix') || ''
 
   try {
     if (arch === undefined) {
       throw new Error(`Unsupported architecture: ${process.arch}`)
     }
     const version = await resolveVersion(versionInput)
+    core.setOutput('rye-version', version)
+
     let cachedPath = tryGetFromCache(arch, version)
     if (cachedPath) {
       core.info(`Found Rye in cache for ${version}`)
     } else {
       cachedPath = await setupRye(platform, arch, version, checkSum)
     }
+
     addRyeToPath(cachedPath)
     addMatchers()
+
+    if (enableCache) {
+      await restoreCache(cachePrefix, version)
+    }
   } catch (err) {
     core.setFailed((err as Error).message)
   }
