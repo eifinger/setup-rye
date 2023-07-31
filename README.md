@@ -9,7 +9,6 @@ Set up your GitHub Actions workflow with a specific version of [rye](https://rye
 ## Limitations
 
 1. Currently only linux is supported see [issue #10](https://github.com/eifinger/setup-rye/issues/10)
-1. Currently only **x64** is supported see [issue #11](https://github.com/eifinger/setup-rye/issues/11)
 
 ## Usage
 
@@ -17,6 +16,8 @@ Set up your GitHub Actions workflow with a specific version of [rye](https://rye
 - name: Install the latest version of rye
   uses: eifinger/setup-rye@v1
 ```
+
+### Install specific version
 
 You can also specify a specific version of rye
 
@@ -26,6 +27,8 @@ You can also specify a specific version of rye
   with:
     version: '0.11.0'
 ```
+
+### Validate checksum
 
 You can also specify a checksum to validate the downloaded file.
 The sha265 hashes can be found on the [releases page](https://github.com/mitsuhiko/rye/releases)
@@ -37,6 +40,19 @@ of the rye repo.
   with:
     version: '0.11.0'
     checksum: '00e795573477a2fe2b3c0ac748240364c3369218d314d1df47d2653764e9bfb1'
+```
+
+### Enable caching
+
+If you enable caching the virtual environment under which gets created by `rye` under `.venv` will
+be cached. You can optionally define a custom cache key prefix.
+
+```yaml
+- name: Install a specific version and validate the checksum
+  uses: eifinger/setup-rye@v1
+  with:
+    enable-cache: true
+    cache-prefix: 'optional-prefix'
 ```
 
 ## How it works
