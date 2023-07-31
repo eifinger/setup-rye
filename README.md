@@ -48,7 +48,7 @@ If you enable caching the virtual environment under which gets created by `rye` 
 be cached. You can optionally define a custom cache key prefix.
 
 ```yaml
-- name: Install a specific version and validate the checksum
+- name: Enable caching and define a custom cache key prefix
   uses: eifinger/setup-rye@v1
   with:
     enable-cache: true
