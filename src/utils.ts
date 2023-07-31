@@ -1,5 +1,7 @@
 import * as fs from 'fs'
 import * as crypto from 'crypto'
+import * as exec from '@actions/exec'
+import * as core from '@actions/core'
 
 export const IS_WINDOWS = process.platform === 'win32'
 export const IS_LINUX = process.platform === 'linux'
@@ -39,4 +41,19 @@ export function getArch(): Architecture | undefined {
   if (arch in archMapping) {
     return archMapping[arch]
   }
+}
+
+export async function getLinuxInfo(): Promise<{
+  osName: string
+  osVersion: string
+}> {
+  const {stdout} = await exec.getExecOutput('lsb_release', ['-i', '-r', '-s'], {
+    silent: true
+  })
+
+  const [osName, osVersion] = stdout.trim().split('\n')
+
+  core.debug(`OS Name: ${osName}, Version: ${osVersion}`)
+
+  return {osName, osVersion}
 }

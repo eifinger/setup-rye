@@ -8,9 +8,22 @@ inputs:
   checksum:
     description: 'The checksum of the rye version to install'
     required: false
+  enable-cache:
+    description: 'Enable caching of .venv'
+    default: 'false'
+  cache-prefix:
+    description: 'Prefix for the cache key'
+    required: false
+outputs:
+  rye-version:
+    description: "The installed rye version. Useful when using latest."
+  cache-hit:
+    description: "A boolean value to indicate a cache entry was found"
 runs:
   using: 'node16'
   main: 'dist/setup/index.js'
+  post: 'dist/save-cache/index.js'
+  post-if: success()
 branding:
   icon: 'package'
   color: 'blue'
