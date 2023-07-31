@@ -10,6 +10,8 @@ export const WINDOWS_PLATFORMS = ['win32', 'win64']
 export const REPO = 'rye'
 export const OWNER = 'mitsuhiko'
 
+export type Architecture = 'x86' | 'x86_64' | 'aarch64'
+
 export async function validateCheckSum(
   filePath: string,
   expected: string
@@ -24,4 +26,17 @@ export async function validateCheckSum(
       resolve(actual === expected)
     })
   })
+}
+
+export function getArch(): Architecture | undefined {
+  const arch = process.arch
+  const archMapping: {[key: string]: Architecture} = {
+    ia32: 'x86',
+    x64: 'x86_64',
+    arm64: 'aarch64'
+  }
+
+  if (arch in archMapping) {
+    return archMapping[arch]
+  }
 }
