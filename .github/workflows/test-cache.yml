@@ -17,6 +17,8 @@ jobs:
         with:
           version: '0.11.0'
           enable-cache: true
+          cache-key: ${{ github.run_id }}-${{ github.run_attempt }}
+      - run: rye sync
   test-restore-cache:
     runs-on: ubuntu-latest
     needs: test-setup-cache
@@ -30,6 +32,7 @@ jobs:
         with:
             version: '0.11.0'
             enable-cache: true
+            cache-key: ${{ github.run_id }}-${{ github.run_attempt }}
       - name: Cache was hit
         run: |
           if [ "$CACHE_HIT" != "true" ]; then
