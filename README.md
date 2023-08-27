@@ -5,6 +5,8 @@ Set up your GitHub Actions workflow with a specific version of [rye](https://rye
 * Install a version of rye and add it to the path
 * Cache the installed version of rye to speed up consecutive runs on self-hosted runners
 * Register problem matchers for error output
+* Optional: Cache the virtual environment created by rye
+* Optional: Verify the checksum of the downloaded rye executable
 
 ## Limitations
 
@@ -25,7 +27,7 @@ You can also specify a specific version of rye
 - name: Install a specific version
   uses: eifinger/setup-rye@v1
   with:
-    version: '0.11.0'
+    version: '0.12.0'
 ```
 
 ### Validate checksum
@@ -38,14 +40,17 @@ of the rye repo.
 - name: Install a specific version and validate the checksum
   uses: eifinger/setup-rye@v1
   with:
-    version: '0.11.0'
-    checksum: '00e795573477a2fe2b3c0ac748240364c3369218d314d1df47d2653764e9bfb1'
+    version: '0.12.0'
+    checksum: 'c48d850e90649d868d512f60af67c74aa844d80f951fdb38589220662e709da7'
 ```
 
 ### Enable caching
 
-If you enable caching the virtual environment under which gets created by `rye` under `.venv` will
-be cached. You can optionally define a custom cache key prefix.
+If you enable caching the virtual environment which gets created by `rye` under `.venv` will
+be cached. This can speed up runs which can reuse the cache
+by several minutes.
+
+You can optionally define a custom cache key prefix.
 
 ```yaml
 - name: Enable caching and define a custom cache key prefix
