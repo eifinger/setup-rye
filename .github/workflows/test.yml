@@ -12,7 +12,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, oracle-aarch64]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v3
         with:
           node-version: '16'
@@ -26,7 +26,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, oracle-aarch64]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Should not be on path
         run: |
           if ! which rye;
@@ -46,7 +46,7 @@ jobs:
         os: [ubuntu-latest, oracle-aarch64]
         rye-version: ['0.11.0', '0.12.0']
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install specific version
         uses: ./
         with:
@@ -66,7 +66,7 @@ jobs:
           - os: oracle-aarch64
             checksum: '7e0b1f6e3490a79c1d2600e8c04dd9ed4ea04d29d6c80f1f5a84a79736e9a21d'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Checksum matches expected
         uses: ./
         with:
