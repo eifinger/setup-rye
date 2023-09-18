@@ -6,7 +6,14 @@ import * as octokit from '@octokit/rest'
 import * as path from 'path'
 import fetch from 'node-fetch'
 import {restoreCache} from './restore-cache'
-import {Architecture, OWNER, REPO, validateCheckSum, getArch} from './utils'
+import {
+  Architecture,
+  OWNER,
+  REPO,
+  KNOWN_CHECKSUMS,
+  validateCheckSum,
+  getArch
+} from './utils'
 
 async function run(): Promise<void> {
   const platform = 'linux'
@@ -102,14 +109,24 @@ async function downloadVersion(
 
   try {
     const downloadPath = await tc.downloadTool(downloadUrl)
+    let isValid = true
     if (checkSum !== undefined && checkSum !== '') {
-      const isValid = await validateCheckSum(downloadPath, checkSum)
-      if (!isValid) {
-        throw new Error(
-          `Checksum for ${downloadPath} did not match ${checkSum}.`
-        )
+      isValid = await validateCheckSum(downloadPath, checkSum)
+    } else {
+      core.debug(`Checksum not provided. Checking known checksums.`)
+      const key = `${arch}-${platform}-${version}`
+      if (key in KNOWN_CHECKSUMS) {
+        const knownChecksum = KNOWN_CHECKSUMS[`${arch}-${platform}-${version}`]
+        isValid = await validateCheckSum(downloadPath, knownChecksum)
+      } else {
+        core.debug(`No known checksum found for ${key}.`)
       }
     }
+
+    if (!isValid) {
+      throw new Error(`Checksum for ${downloadPath} did not match ${checkSum}.`)
+    }
+    core.debug(`Checksum for ${downloadPath} is valid.`)
 
     await extract(downloadPath)
     return downloadPath
