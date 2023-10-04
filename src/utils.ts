@@ -13,6 +13,32 @@ export const REPO = 'rye'
 export const OWNER = 'mitsuhiko'
 
 export const KNOWN_CHECKSUMS: {[key: string]: string} = {
+  'aarch64-linux-0.15.1':
+    'bfde03a365a34a706e12a6183f0736fa3ff987e430be8356129b990c0458cbed',
+  'aarch64-macos-0.15.1':
+    'ae46af38c4416f15d521062e89259d748909e8221453c1c0c2528e2c78450ffb',
+  'x86-windows-0.15.1':
+    '7d25c0e0422adac9bde8fa875a01b01a399096d667f193244ca07251d9bf33b5',
+  'x86_64-linux-0.15.1':
+    '4bcf59f54e1aeaf50d129f9fe80f3ab598eda3d33c24d0bdec51192eaeac61b9',
+  'x86_64-macos-0.15.1':
+    'd21958e45ca024a84281c9f3c415c1f9fd4150f6a2e0ee22a26c6da4967eba60',
+  'x86_64-windows-0.15.1':
+    'fb199d7dc21adba15f799e11e91513dc30a84ea3f2f6c6327c53d8561a3ebc08',
+
+  'aarch64-linux-0.15.0':
+    '7975c69cddad29324d5123d541d587669e61a365bf310bfcc69404ce7038de1e',
+  'aarch64-macos-0.15.0':
+    '0598a95f91e155d37d905afb55d0f23625f0cf3efcbb4d3dd5c312224be98919',
+  'x86-windows-0.15.0':
+    'b9bd27b7190eee1968be608f714a2f9d24737eb34da02cf48a10c4687be1c5e3',
+  'x86_64-linux-0.15.0':
+    '8a0f202b3cf8706af331ec439e960503da30d74475ad23631526b9486563a0a2',
+  'x86_64-macos-0.15.0':
+    'd6ba7e02dbeb9501ca51d877041ee99c09f2726c483dbb400fe7041347743e9a',
+  'x86_64-windows-0.15.0':
+    '69eaf27ce69bba897b5f9f1a84cce1249e1a9ac2d80ec7dc3a791fe9302d95a1',
+
   'aarch64-linux-0.14.0':
     'eff31fe41152dcb0c43079f33e7c35fd4320c30928fa26ba44deef6583f27522',
   'aarch64-macos-0.14.0':
