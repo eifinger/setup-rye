@@ -69993,6 +69993,10 @@ function run() {
 }
 function resolveVersion(versionInput) {
     return __awaiter(this, void 0, void 0, function* () {
+        if ((0, utils_1.isknownVersion)(versionInput)) {
+            core.debug(`Version ${versionInput} is known.`);
+            return versionInput;
+        }
         const availableVersion = yield getAvailableVersions();
         if (!availableVersion.includes(versionInput)) {
             if (versionInput === 'latest') {
@@ -70156,7 +70160,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getLinuxInfo = exports.getArch = exports.validateCheckSum = exports.KNOWN_CHECKSUMS = exports.OWNER = exports.REPO = exports.WINDOWS_PLATFORMS = exports.WINDOWS_ARCHS = exports.IS_MAC = exports.IS_LINUX = exports.IS_WINDOWS = void 0;
+exports.getLinuxInfo = exports.getArch = exports.isknownVersion = exports.validateCheckSum = exports.KNOWN_CHECKSUMS = exports.OWNER = exports.REPO = exports.WINDOWS_PLATFORMS = exports.WINDOWS_ARCHS = exports.IS_MAC = exports.IS_LINUX = exports.IS_WINDOWS = void 0;
 const fs = __importStar(__nccwpck_require__(7147));
 const crypto = __importStar(__nccwpck_require__(6113));
 const exec = __importStar(__nccwpck_require__(1514));
@@ -70223,6 +70227,11 @@ function validateCheckSum(filePath, expected) {
     });
 }
 exports.validateCheckSum = validateCheckSum;
+function isknownVersion(version) {
+    const pattern = new RegExp(`^.*-.*-${version}$`);
+    return Object.keys(exports.KNOWN_CHECKSUMS).some(key => pattern.test(key));
+}
+exports.isknownVersion = isknownVersion;
 function getArch() {
     const arch = process.arch;
     const archMapping = {
