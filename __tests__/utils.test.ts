@@ -9,3 +9,13 @@ test('checksum should match', async () => {
   const isValid = await utils.validateCheckSum(filePath, validChecksum)
   expect(isValid).toBeTruthy()
 })
+
+test('known checksum should be true', () => {
+  const isKnown = utils.isknownVersion('0.12.0')
+  expect(isKnown).toBeTruthy()
+})
+
+test('unknown checksum should be false', () => {
+  const isKnown = utils.isknownVersion('0.09.0')
+  expect(isKnown).toBeFalsy()
+})

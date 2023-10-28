@@ -115,6 +115,11 @@ export async function validateCheckSum(
   })
 }
 
+export function isknownVersion(version: string): boolean {
+  const pattern = new RegExp(`^.*-.*-${version}$`)
+  return Object.keys(KNOWN_CHECKSUMS).some(key => pattern.test(key))
+}
+
 export function getArch(): Architecture | undefined {
   const arch = process.arch
   const archMapping: {[key: string]: Architecture} = {

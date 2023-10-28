@@ -12,7 +12,8 @@ import {
   REPO,
   KNOWN_CHECKSUMS,
   validateCheckSum,
-  getArch
+  getArch,
+  isknownVersion
 } from './utils'
 
 async function run(): Promise<void> {
@@ -49,6 +50,10 @@ async function run(): Promise<void> {
 }
 
 async function resolveVersion(versionInput: string): Promise<string> {
+  if (isknownVersion(versionInput)) {
+    core.debug(`Version ${versionInput} is known.`)
+    return versionInput
+  }
   const availableVersion = await getAvailableVersions()
   if (!availableVersion.includes(versionInput)) {
     if (versionInput === 'latest') {
