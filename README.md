@@ -33,6 +33,7 @@ You can also specify a specific version of rye
 ### Validate checksum
 
 You can also specify a checksum to validate the downloaded file.
+Checksums of versions 0.12.0 and later are automatically verified by this action.
 The sha265 hashes can be found on the [releases page](https://github.com/mitsuhiko/rye/releases)
 of the rye repo.
 
@@ -58,6 +59,19 @@ You can optionally define a custom cache key prefix.
   with:
     enable-cache: true
     cache-prefix: 'optional-prefix'
+```
+
+#### Working directory
+
+If your rye project is not at the root of the repository you can specify the working directory
+relative to the repository root. This is useful for monorepos.
+
+```yaml
+- name: Enable caching and define a working directory
+  uses: eifinger/setup-rye@v1
+  with:
+    enable-cache: true
+    working-directory: 'path/to/rye/project'
 ```
 
 ## How it works

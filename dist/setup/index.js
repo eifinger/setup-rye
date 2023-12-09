@@ -69861,13 +69861,15 @@ const core = __importStar(__nccwpck_require__(2186));
 const utils_1 = __nccwpck_require__(1314);
 exports.STATE_CACHE_PRIMARY_KEY = 'cache-primary-key';
 exports.CACHE_MATCHED_KEY = 'cache-matched-key';
-const CACHE_DEPENDENCY_PATH = '**/requirements**.lock';
-const cachePath = `${process.env['GITHUB_WORKSPACE']}/.venv`;
+const CACHE_DEPENDENCY_PATH = 'requirements**.lock';
+const workingDir = `/${core.getInput('working-directory')}` || '';
+const cachePath = `${process.env['GITHUB_WORKSPACE']}${workingDir}/.venv`;
+const cacheDependencyPath = `${process.env['GITHUB_WORKSPACE']}${workingDir}/${CACHE_DEPENDENCY_PATH}`;
 function restoreCache(cachePrefix, version) {
     return __awaiter(this, void 0, void 0, function* () {
         const { primaryKey, restoreKey } = yield computeKeys(cachePrefix, version);
         if (primaryKey.endsWith('-')) {
-            throw new Error(`No file in ${process.cwd()} matched to [${CACHE_DEPENDENCY_PATH}], make sure you have checked out the target repository`);
+            throw new Error(`No file in ${process.cwd()} matched to [${cacheDependencyPath}], make sure you have checked out the target repository`);
         }
         let matchedKey;
         try {
@@ -69886,12 +69888,13 @@ function restoreCache(cachePrefix, version) {
 exports.restoreCache = restoreCache;
 function computeKeys(cachePrefix, version) {
     return __awaiter(this, void 0, void 0, function* () {
-        const hash = yield glob.hashFiles(CACHE_DEPENDENCY_PATH);
+        core.debug(`Computing cache key for ${cacheDependencyPath}`);
+        const hash = yield glob.hashFiles(cacheDependencyPath);
         let primaryKey = '';
         let restoreKey = '';
         const osInfo = yield (0, utils_1.getLinuxInfo)();
-        primaryKey = `${cachePrefix}-${process.env['RUNNER_OS']}-${osInfo.osVersion}-${osInfo.osName}-rye-${version}-venv-${hash}`;
-        restoreKey = `${cachePrefix}-${process.env['RUNNER_OS']}-${osInfo.osVersion}-${osInfo.osName}-rye-${version}-venv`;
+        primaryKey = `${cachePrefix}-${process.env['RUNNER_OS']}-${osInfo.osVersion}-${osInfo.osName}-rye-${version}-${workingDir}-${hash}`;
+        restoreKey = `${cachePrefix}-${process.env['RUNNER_OS']}-${osInfo.osVersion}-${osInfo.osName}-rye-${version}-${workingDir}`;
         return { primaryKey, restoreKey };
     });
 }

@@ -2,7 +2,8 @@ import * as cache from '@actions/cache'
 import * as core from '@actions/core'
 import {CACHE_MATCHED_KEY, STATE_CACHE_PRIMARY_KEY} from './restore-cache'
 
-const cachePath = `${process.env['GITHUB_WORKSPACE']}/.venv`
+const workingDir = `/${core.getInput('working-directory')}` || ''
+const cachePath = `${process.env['GITHUB_WORKSPACE']}${workingDir}/.venv`
 
 export async function run(): Promise<void> {
   try {
@@ -34,6 +35,7 @@ async function saveCache(): Promise<void> {
   let cacheId = 0
 
   try {
+    core.info(`Saving cache path: ${cachePath}`)
     cacheId = await cache.saveCache([cachePath], primaryKey)
   } catch (err) {
     const message = (err as Error).message

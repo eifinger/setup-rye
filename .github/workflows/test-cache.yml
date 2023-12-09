@@ -10,29 +10,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Simluate rye-project
-        run: cp -r ./__tests__/fixtures/rye-project/* .
       - name: Setup with cache
         uses: ./
         with:
           version: '0.11.0'
           enable-cache: true
-          cache-key: ${{ github.run_id }}-${{ github.run_attempt }}
+          working-directory: __tests__/fixtures/rye-project
+          cache-prefix: ${{ github.run_id }}-${{ github.run_attempt }}
       - run: rye sync
+        working-directory: __tests__/fixtures/rye-project
   test-restore-cache:
     runs-on: ubuntu-latest
     needs: test-setup-cache
     steps:
       - uses: actions/checkout@v4
-      - name: Simluate rye-project
-        run: cp -r ./__tests__/fixtures/rye-project/* .
       - name: Restore with cache
         id: restore
         uses: ./
         with:
             version: '0.11.0'
             enable-cache: true
-            cache-key: ${{ github.run_id }}-${{ github.run_attempt }}
+            working-directory: __tests__/fixtures/rye-project
+            cache-prefix: ${{ github.run_id }}-${{ github.run_attempt }}
       - name: Cache was hit
         run: |
           if [ "$CACHE_HIT" != "true" ]; then
