@@ -60761,12 +60761,14 @@ const cache = __importStar(__nccwpck_require__(7799));
 const glob = __importStar(__nccwpck_require__(8090));
 const core = __importStar(__nccwpck_require__(2186));
 const utils_1 = __nccwpck_require__(1314);
+const fs_1 = __nccwpck_require__(7147);
 exports.STATE_CACHE_PRIMARY_KEY = 'cache-primary-key';
 exports.CACHE_MATCHED_KEY = 'cache-matched-key';
 const CACHE_DEPENDENCY_PATH = 'requirements**.lock';
 const workingDir = `/${core.getInput('working-directory')}` || '';
 const cachePath = `${process.env['GITHUB_WORKSPACE']}${workingDir}/.venv`;
 const cacheDependencyPath = `${process.env['GITHUB_WORKSPACE']}${workingDir}/${CACHE_DEPENDENCY_PATH}`;
+const pythonVersionFilePath = `${process.env['GITHUB_WORKSPACE']}${workingDir}/.python-version`;
 function restoreCache(cachePrefix, version) {
     return __awaiter(this, void 0, void 0, function* () {
         const { primaryKey, restoreKey } = yield computeKeys(cachePrefix, version);
@@ -60795,8 +60797,9 @@ function computeKeys(cachePrefix, version) {
         let primaryKey = '';
         let restoreKey = '';
         const osInfo = yield (0, utils_1.getLinuxInfo)();
-        primaryKey = `${cachePrefix}-${process.env['RUNNER_OS']}-${osInfo.osVersion}-${osInfo.osName}-rye-${version}-${workingDir}-${hash}`;
-        restoreKey = `${cachePrefix}-${process.env['RUNNER_OS']}-${osInfo.osVersion}-${osInfo.osName}-rye-${version}-${workingDir}`;
+        const pyVersion = yield fs_1.promises.readFile(pythonVersionFilePath, 'utf8');
+        primaryKey = `${cachePrefix}-${process.env['RUNNER_OS']}-${osInfo.osVersion}-${osInfo.osName}-rye-${version}-${workingDir}-${pyVersion}-${hash}`;
+        restoreKey = `${cachePrefix}-${process.env['RUNNER_OS']}-${osInfo.osVersion}-${osInfo.osName}-rye-${version}-${workingDir}-${pyVersion}`;
         return { primaryKey, restoreKey };
     });
 }

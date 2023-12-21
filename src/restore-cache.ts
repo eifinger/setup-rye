@@ -3,6 +3,7 @@ import * as glob from '@actions/glob'
 import * as core from '@actions/core'
 
 import {getLinuxInfo} from './utils'
+import {promises as fs} from 'fs'
 
 export const STATE_CACHE_PRIMARY_KEY = 'cache-primary-key'
 export const CACHE_MATCHED_KEY = 'cache-matched-key'
@@ -10,6 +11,7 @@ const CACHE_DEPENDENCY_PATH = 'requirements**.lock'
 const workingDir = `/${core.getInput('working-directory')}` || ''
 const cachePath = `${process.env['GITHUB_WORKSPACE']}${workingDir}/.venv`
 const cacheDependencyPath = `${process.env['GITHUB_WORKSPACE']}${workingDir}/${CACHE_DEPENDENCY_PATH}`
+const pythonVersionFilePath = `${process.env['GITHUB_WORKSPACE']}${workingDir}/.python-version`
 
 export async function restoreCache(
   cachePrefix: string,
@@ -46,8 +48,9 @@ async function computeKeys(
   let primaryKey = ''
   let restoreKey = ''
   const osInfo = await getLinuxInfo()
-  primaryKey = `${cachePrefix}-${process.env['RUNNER_OS']}-${osInfo.osVersion}-${osInfo.osName}-rye-${version}-${workingDir}-${hash}`
-  restoreKey = `${cachePrefix}-${process.env['RUNNER_OS']}-${osInfo.osVersion}-${osInfo.osName}-rye-${version}-${workingDir}`
+  const pyVersion = await fs.readFile(pythonVersionFilePath, 'utf8')
+  primaryKey = `${cachePrefix}-${process.env['RUNNER_OS']}-${osInfo.osVersion}-${osInfo.osName}-rye-${version}-${workingDir}-${pyVersion}-${hash}`
+  restoreKey = `${cachePrefix}-${process.env['RUNNER_OS']}-${osInfo.osVersion}-${osInfo.osName}-rye-${version}-${workingDir}-${pyVersion}`
   return {primaryKey, restoreKey}
 }
 
