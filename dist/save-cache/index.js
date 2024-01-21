@@ -60958,6 +60958,12 @@ exports.WINDOWS_PLATFORMS = ['win32', 'win64'];
 exports.REPO = 'rye';
 exports.OWNER = 'mitsuhiko';
 exports.KNOWN_CHECKSUMS = {
+    'aarch64-linux-0.18.0': '7c74bfaf9befb4d8fda6966238b22c5d613693880094e33d176dd3e85827962f',
+    'aarch64-macos-0.18.0': 'df431f9318f2c2a5af4b470dd98502d79c6b39eab096198c9a30022d59d641f7',
+    'x86-windows-0.18.0': '08fae09ecdee51e092ccd6ce3e0e4ef56b337525b2ccdf796e5dc02eb8cc06b3',
+    'x86_64-linux-0.18.0': '42e7952444697fd36fcaca5af50b3731cda2bfb116ebacf69587f46833fdd246',
+    'x86_64-macos-0.18.0': '69c55e68cd60b5ff7fbcedb57c555fd2fb506201a97e77a97aeadc6409e21bee',
+    'x86_64-windows-0.18.0': '4e38b24abdad9ca4cce93a79ab1dbc5821451cc3e7cc00a4d756e3e61a25fad5',
     'aarch64-linux-0.17.0': '61d3f2b281d3e5f8a43eb24dd03fb32a8692ba3b2c22802e8d4052a53408b21c',
     'aarch64-macos-0.17.0': '8b5b7bfb2653d9ae2e397938c4c7ec45426154d5dfccf650a5cfe78073c979c6',
     'x86-windows-0.17.0': 'f509b153bd92b92f1979bc452f9a174dee9ee0681ef73f71b918dd28f424e0cd',
