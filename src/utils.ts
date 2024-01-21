@@ -13,6 +13,19 @@ export const REPO = 'rye'
 export const OWNER = 'mitsuhiko'
 
 export const KNOWN_CHECKSUMS: {[key: string]: string} = {
+  'aarch64-linux-0.19.0':
+    '1b071990b2d709c954be8dac4e9ad4f1bcefad4187e3df34a16dff5ed885d925',
+  'aarch64-macos-0.19.0':
+    '994a345136b2ce19affc3ffd75e35e90c08cc8d4fc76eebdb704b0d4fb644eba',
+  'x86-windows-0.19.0':
+    'eea52596235d5538527355570e74d2fff074c406322b28be88f7809dc223eeee',
+  'x86_64-linux-0.19.0':
+    'b1cdb5489556e7ddc9d76206a03e85eda81c1c291a53ea4ac596646f0b35e0da',
+  'x86_64-macos-0.19.0':
+    '02b6a1b0dac8bfc9eb63b2b0667a2856eb99d7fecead599d63db1276fd51fe7b',
+  'x86_64-windows-0.19.0':
+    '81f48f4b9e6dfc5952af368c32bdb92d0dc46c08e11babb2e9ca99fd5b01a33a',
+
   'aarch64-linux-0.18.0':
     '7c74bfaf9befb4d8fda6966238b22c5d613693880094e33d176dd3e85827962f',
   'aarch64-macos-0.18.0':
