@@ -1,6 +1,8 @@
 import * as cache from '@actions/cache'
 import * as glob from '@actions/glob'
 import * as core from '@actions/core'
+import {cp} from '@actions/io/'
+import {exists} from '@actions/io/lib/io-util'
 
 import {getLinuxInfo} from './utils'
 
@@ -9,6 +11,8 @@ export const CACHE_MATCHED_KEY = 'cache-matched-key'
 const CACHE_DEPENDENCY_PATH = 'requirements**.lock'
 const workingDir = `/${core.getInput('working-directory')}` || ''
 const cachePath = `${process.env['GITHUB_WORKSPACE']}${workingDir}/.venv`
+const cacheLocalStoragePath =
+  `${core.getInput('cache-local-storage-path')}` || ''
 const cacheDependencyPath = `${process.env['GITHUB_WORKSPACE']}${workingDir}/${CACHE_DEPENDENCY_PATH}`
 
 export async function restoreCache(
@@ -24,7 +28,9 @@ export async function restoreCache(
 
   let matchedKey: string | undefined
   try {
-    matchedKey = await cache.restoreCache([cachePath], primaryKey, [restoreKey])
+    matchedKey = cacheLocalStoragePath
+      ? await restoreCacheLocal(primaryKey)
+      : await cache.restoreCache([cachePath], primaryKey, [restoreKey])
   } catch (err) {
     const message = (err as Error).message
     core.warning(message)
@@ -59,7 +65,20 @@ function handleMatchResult(
     core.saveState(CACHE_MATCHED_KEY, matchedKey)
     core.info(`Cache restored from key: ${matchedKey}`)
   } else {
-    core.info(`cache is not found`)
+    core.info(`Cache is not found`)
   }
   core.setOutput('cache-hit', matchedKey === primaryKey)
+}
+
+async function restoreCacheLocal(primaryKey: string): Promise<string> {
+  const storedCache = `${cacheLocalStoragePath}/${primaryKey}`
+  if (!(await exists(storedCache))) {
+    core.info(`Local cache is not found: ${storedCache}`)
+    return ''
+  }
+  await cp(storedCache, cachePath, {
+    copySourceDirectory: false,
+    recursive: true
+  })
+  return primaryKey
 }

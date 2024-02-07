@@ -17,6 +17,9 @@ inputs:
   cache-prefix:
     description: 'Prefix for the cache key'
     required: false
+  cache-local-storage-path:
+    description: 'Local path to store the cache. Will be used instead of the GitHub Actions cache'
+    required: false
 outputs:
   rye-version:
     description: "The installed rye version. Useful when using latest."

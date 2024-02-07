@@ -60760,12 +60760,15 @@ exports.restoreCache = exports.CACHE_MATCHED_KEY = exports.STATE_CACHE_PRIMARY_K
 const cache = __importStar(__nccwpck_require__(7799));
 const glob = __importStar(__nccwpck_require__(8090));
 const core = __importStar(__nccwpck_require__(2186));
+const io_1 = __nccwpck_require__(7436);
+const io_util_1 = __nccwpck_require__(1962);
 const utils_1 = __nccwpck_require__(1314);
 exports.STATE_CACHE_PRIMARY_KEY = 'cache-primary-key';
 exports.CACHE_MATCHED_KEY = 'cache-matched-key';
 const CACHE_DEPENDENCY_PATH = 'requirements**.lock';
 const workingDir = `/${core.getInput('working-directory')}` || '';
 const cachePath = `${process.env['GITHUB_WORKSPACE']}${workingDir}/.venv`;
+const cacheLocalStoragePath = `${core.getInput('cache-local-storage-path')}` || '';
 const cacheDependencyPath = `${process.env['GITHUB_WORKSPACE']}${workingDir}/${CACHE_DEPENDENCY_PATH}`;
 function restoreCache(cachePrefix, version) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -60775,7 +60778,9 @@ function restoreCache(cachePrefix, version) {
         }
         let matchedKey;
         try {
-            matchedKey = yield cache.restoreCache([cachePath], primaryKey, [restoreKey]);
+            matchedKey = cacheLocalStoragePath
+                ? yield restoreCacheLocal(primaryKey)
+                : yield cache.restoreCache([cachePath], primaryKey, [restoreKey]);
         }
         catch (err) {
             const message = err.message;
@@ -60806,9 +60811,23 @@ function handleMatchResult(matchedKey, primaryKey) {
         core.info(`Cache restored from key: ${matchedKey}`);
     }
     else {
-        core.info(`cache is not found`);
+        core.info(`Cache is not found`);
     }
     core.setOutput('cache-hit', matchedKey === primaryKey);
+}
+function restoreCacheLocal(primaryKey) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const storedCache = `${cacheLocalStoragePath}/${primaryKey}`;
+        if (!(yield (0, io_util_1.exists)(storedCache))) {
+            core.info(`Local cache is not found: ${storedCache}`);
+            return '';
+        }
+        yield (0, io_1.cp)(storedCache, cachePath, {
+            copySourceDirectory: false,
+            recursive: true
+        });
+        return primaryKey;
+    });
 }
 
 
@@ -60855,13 +60874,15 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.run = void 0;
 const cache = __importStar(__nccwpck_require__(7799));
 const core = __importStar(__nccwpck_require__(2186));
+const io_1 = __nccwpck_require__(7436);
 const restore_cache_1 = __nccwpck_require__(744);
+const enableCache = core.getInput('enable-cache') === 'true';
 const workingDir = `/${core.getInput('working-directory')}` || '';
+const cacheLocalStoragePath = `${core.getInput('cache-local-storage-path')}` || '';
 const cachePath = `${process.env['GITHUB_WORKSPACE']}${workingDir}/.venv`;
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const enableCache = core.getInput('enable-cache') === 'true';
             if (enableCache) {
                 yield saveCache();
             }
@@ -60886,20 +60907,21 @@ function saveCache() {
             core.info(`Cache hit occurred on the primary key ${primaryKey}, not saving cache.`);
             return;
         }
-        let cacheId = 0;
-        try {
-            core.info(`Saving cache path: ${cachePath}`);
-            cacheId = yield cache.saveCache([cachePath], primaryKey);
-        }
-        catch (err) {
-            const message = err.message;
-            core.info(`[warning]${message}`);
-            return;
-        }
-        if (cacheId === -1) {
-            return;
-        }
+        core.info(`Saving cache path: ${cachePath}`);
+        cacheLocalStoragePath
+            ? yield saveCacheLocal(primaryKey)
+            : yield cache.saveCache([cachePath], primaryKey);
         core.info(`Cache saved with the key: ${primaryKey}`);
+    });
+}
+function saveCacheLocal(primaryKey) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const targetPath = `${cacheLocalStoragePath}/${primaryKey}`;
+        yield (0, io_1.mkdirP)(targetPath);
+        yield (0, io_1.cp)(cachePath, targetPath, {
+            copySourceDirectory: false,
+            recursive: true
+        });
     });
 }
 run();

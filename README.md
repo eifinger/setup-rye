@@ -84,6 +84,19 @@ relative to the repository root. This is useful for monorepos.
     working-directory: 'path/to/rye/project'
 ```
 
+#### Local storage path
+
+If you want to save the cache to a local path you can specify the path with the `cache-local-storage-path` input.
+This can be useful if you are on a self hosted runner and want to save time and network traffic.
+
+```yaml
+- name: Enable caching and define a custom cache path
+  uses: eifinger/setup-rye@v1
+  with:
+    enable-cache: true
+    cache-local-storage-path: '/path/to/cache'
+```
+
 ## How it works
 
 This action downloads rye from the releases of the [rye repo](https://github.com/mitsuhiko/rye) and uses the [GitHub Actions Toolkit](https://github.com/actions/toolkit) to cache it as a tool to speed up consecutive runs especially on self-hosted runners.
