@@ -184,6 +184,7 @@ async function installRye(
 
   const cachedPath = await tc.cacheDir(tempDir, 'rye', version, arch)
   core.info(`Moved Rye into ${cachedPath}`)
+  core.exportVariable('RYE_HOME', cachedPath)
   return cachedPath
 }
 

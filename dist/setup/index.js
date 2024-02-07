@@ -70109,6 +70109,7 @@ function installRye(downloadPath, arch, version) {
         yield exec.exec(downloadPath, ['self', 'install', '--yes'], options);
         const cachedPath = yield tc.cacheDir(tempDir, 'rye', version, arch);
         core.info(`Moved Rye into ${cachedPath}`);
+        core.exportVariable('RYE_HOME', cachedPath);
         return cachedPath;
     });
 }
