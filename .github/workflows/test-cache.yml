@@ -5,6 +5,9 @@ on:
     branches:
       - main
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+
 jobs:
   test-setup-cache:
     runs-on: ubuntu-latest
@@ -32,6 +35,42 @@ jobs:
             enable-cache: true
             working-directory: __tests__/fixtures/rye-project
             cache-prefix: ${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Cache was hit
+        run: |
+          if [ "$CACHE_HIT" != "true" ]; then
+            exit 1
+          fi
+        env:
+          CACHE_HIT: ${{ steps.restore.outputs.cache-hit }}
+
+  test-setup-cache-local:
+    runs-on: oracle-aarch64
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup with cache
+        uses: ./
+        with:
+          version: '0.11.0'
+          enable-cache: true
+          working-directory: __tests__/fixtures/rye-project
+          cache-prefix: ${{ github.run_id }}-${{ github.run_attempt }}
+          cache-local-storage-path: /tmp/rye-cache
+      - run: rye sync
+        working-directory: __tests__/fixtures/rye-project
+  test-restore-cache-local:
+    runs-on: oracle-aarch64
+    needs: test-setup-cache-local
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore with cache
+        id: restore
+        uses: ./
+        with:
+            version: '0.11.0'
+            enable-cache: true
+            working-directory: __tests__/fixtures/rye-project
+            cache-prefix: ${{ github.run_id }}-${{ github.run_attempt }}
+            cache-local-storage-path: /tmp/rye-cache
       - name: Cache was hit
         run: |
           if [ "$CACHE_HIT" != "true" ]; then

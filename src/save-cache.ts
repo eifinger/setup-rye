@@ -1,13 +1,16 @@
 import * as cache from '@actions/cache'
 import * as core from '@actions/core'
+import {mkdirP, cp} from '@actions/io/'
 import {CACHE_MATCHED_KEY, STATE_CACHE_PRIMARY_KEY} from './restore-cache'
 
+const enableCache = core.getInput('enable-cache') === 'true'
 const workingDir = `/${core.getInput('working-directory')}` || ''
+const cacheLocalStoragePath =
+  `${core.getInput('cache-local-storage-path')}` || ''
 const cachePath = `${process.env['GITHUB_WORKSPACE']}${workingDir}/.venv`
 
 export async function run(): Promise<void> {
   try {
-    const enableCache = core.getInput('enable-cache') === 'true'
     if (enableCache) {
       await saveCache()
     }
@@ -31,22 +34,21 @@ async function saveCache(): Promise<void> {
     )
     return
   }
+  core.info(`Saving cache path: ${cachePath}`)
+  cacheLocalStoragePath
+    ? await saveCacheLocal(primaryKey)
+    : await cache.saveCache([cachePath], primaryKey)
 
-  let cacheId = 0
-
-  try {
-    core.info(`Saving cache path: ${cachePath}`)
-    cacheId = await cache.saveCache([cachePath], primaryKey)
-  } catch (err) {
-    const message = (err as Error).message
-    core.info(`[warning]${message}`)
-    return
-  }
-
-  if (cacheId === -1) {
-    return
-  }
   core.info(`Cache saved with the key: ${primaryKey}`)
+}
+
+async function saveCacheLocal(primaryKey: string): Promise<void> {
+  const targetPath = `${cacheLocalStoragePath}/${primaryKey}`
+  await mkdirP(targetPath)
+  await cp(cachePath, targetPath, {
+    copySourceDirectory: false,
+    recursive: true
+  })
 }
 
 run()
