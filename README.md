@@ -55,10 +55,20 @@ You can optionally define a custom cache key prefix.
 
 ```yaml
 - name: Enable caching and define a custom cache key prefix
+  id: setup-rye
   uses: eifinger/setup-rye@v1
   with:
     enable-cache: true
     cache-prefix: 'optional-prefix'
+```
+
+When the cache was successfully restored the output `cache-hit` will be set to `true` and you can use it in subsequent steps.
+For the example above you can use it like this:
+
+```yaml
+- name: Do something if the cache was restored
+  if: steps.setup-rye.outputs.cache-hit == 'true'
+  run: echo "Cache was restored"
 ```
 
 #### Working directory
