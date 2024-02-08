@@ -60880,7 +60880,8 @@ const core = __importStar(__nccwpck_require__(2186));
 const io_1 = __nccwpck_require__(7436);
 const restore_cache_1 = __nccwpck_require__(744);
 const enableCache = core.getInput('enable-cache') === 'true';
-const workingDir = `/${core.getInput('working-directory')}` || '';
+const workingDirInput = core.getInput('working-directory');
+const workingDir = workingDirInput ? `/${workingDirInput}` : '';
 const cacheLocalStoragePath = `${core.getInput('cache-local-storage-path')}` || '';
 const cachePath = `${process.env['GITHUB_WORKSPACE']}${workingDir}/.venv`;
 function run() {
