@@ -60803,8 +60803,9 @@ function computeKeys(cachePrefix, version) {
             ? `-${crypto.createHash('sha256').update(workingDir).digest('hex')}`
             : '';
         const osInfo = yield (0, utils_1.getLinuxInfo)();
-        const primaryKey = `${cachePrefix}-setup-rye-${process.env['RUNNER_OS']}-${osInfo.osVersion}-${osInfo.osName}-rye-${version}${workingDirHash}-${dependencyPathHash}`;
-        const restoreKey = `${cachePrefix}-setup-rye-${process.env['RUNNER_OS']}-${osInfo.osVersion}-${osInfo.osName}-rye-${version}${workingDirHash}`;
+        const prefix = cachePrefix ? `${cachePrefix}-` : '';
+        const primaryKey = `${prefix}setup-rye-${process.env['RUNNER_OS']}-${osInfo.osVersion}-${osInfo.osName}-rye-${version}${workingDirHash}-${dependencyPathHash}`;
+        const restoreKey = `${prefix}setup-rye-${process.env['RUNNER_OS']}-${osInfo.osVersion}-${osInfo.osName}-rye-${version}${workingDirHash}`;
         return { primaryKey, restoreKey };
     });
 }
