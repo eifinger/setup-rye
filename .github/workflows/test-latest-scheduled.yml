@@ -1,0 +1,22 @@
+name: 'test-latest-scheduled'
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: "0 0 * * *"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-rye-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup rye
+        uses: ./
+      - run: rye sync
+        working-directory: __tests__/fixtures/rye-project
