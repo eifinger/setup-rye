@@ -60756,7 +60756,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.restoreCache = exports.CACHE_MATCHED_KEY = exports.STATE_CACHE_PRIMARY_KEY = void 0;
+exports.restoreCache = exports.STATE_CACHE_MATCHED_KEY = exports.STATE_CACHE_PRIMARY_KEY = void 0;
+const crypto = __importStar(__nccwpck_require__(6113));
 const cache = __importStar(__nccwpck_require__(7799));
 const glob = __importStar(__nccwpck_require__(8090));
 const core = __importStar(__nccwpck_require__(2186));
@@ -60764,9 +60765,10 @@ const io_1 = __nccwpck_require__(7436);
 const io_util_1 = __nccwpck_require__(1962);
 const utils_1 = __nccwpck_require__(1314);
 exports.STATE_CACHE_PRIMARY_KEY = 'cache-primary-key';
-exports.CACHE_MATCHED_KEY = 'cache-matched-key';
+exports.STATE_CACHE_MATCHED_KEY = 'cache-matched-key';
 const CACHE_DEPENDENCY_PATH = 'requirements**.lock';
-const workingDir = `/${core.getInput('working-directory')}` || '';
+const workingDirInput = core.getInput('working-directory');
+const workingDir = workingDirInput ? `/${workingDirInput}` : '';
 const cachePath = `${process.env['GITHUB_WORKSPACE']}${workingDir}/.venv`;
 const cacheLocalStoragePath = `${core.getInput('cache-local-storage-path')}` || '';
 const cacheDependencyPath = `${process.env['GITHUB_WORKSPACE']}${workingDir}/${CACHE_DEPENDENCY_PATH}`;
@@ -60796,18 +60798,19 @@ exports.restoreCache = restoreCache;
 function computeKeys(cachePrefix, version) {
     return __awaiter(this, void 0, void 0, function* () {
         core.debug(`Computing cache key for ${cacheDependencyPath}`);
-        const hash = yield glob.hashFiles(cacheDependencyPath);
-        let primaryKey = '';
-        let restoreKey = '';
+        const dependencyPathHash = yield glob.hashFiles(cacheDependencyPath);
+        const workingDirHash = workingDir
+            ? `-${crypto.createHash('sha256').update(workingDir).digest('hex')}`
+            : '';
         const osInfo = yield (0, utils_1.getLinuxInfo)();
-        primaryKey = `${cachePrefix}-${process.env['RUNNER_OS']}-${osInfo.osVersion}-${osInfo.osName}-rye-${version}-${workingDir}-${hash}`;
-        restoreKey = `${cachePrefix}-${process.env['RUNNER_OS']}-${osInfo.osVersion}-${osInfo.osName}-rye-${version}-${workingDir}`;
+        const primaryKey = `${cachePrefix}-setup-rye-${process.env['RUNNER_OS']}-${osInfo.osVersion}-${osInfo.osName}-rye-${version}${workingDirHash}-${dependencyPathHash}`;
+        const restoreKey = `${cachePrefix}-setup-rye-${process.env['RUNNER_OS']}-${osInfo.osVersion}-${osInfo.osName}-rye-${version}${workingDirHash}`;
         return { primaryKey, restoreKey };
     });
 }
 function handleMatchResult(matchedKey, primaryKey) {
     if (matchedKey) {
-        core.saveState(exports.CACHE_MATCHED_KEY, matchedKey);
+        core.saveState(exports.STATE_CACHE_MATCHED_KEY, matchedKey);
         core.info(`Cache restored from key: ${matchedKey}`);
     }
     else {
@@ -60820,7 +60823,7 @@ function restoreCacheLocal(primaryKey) {
         const storedCache = `${cacheLocalStoragePath}/${primaryKey}`;
         if (!(yield (0, io_util_1.exists)(storedCache))) {
             core.info(`Local cache is not found: ${storedCache}`);
-            return '';
+            return;
         }
         yield (0, io_1.cp)(storedCache, cachePath, {
             copySourceDirectory: false,
@@ -60897,7 +60900,7 @@ exports.run = run;
 function saveCache() {
     return __awaiter(this, void 0, void 0, function* () {
         const primaryKey = core.getState(restore_cache_1.STATE_CACHE_PRIMARY_KEY);
-        const matchedKey = core.getState(restore_cache_1.CACHE_MATCHED_KEY);
+        const matchedKey = core.getState(restore_cache_1.STATE_CACHE_MATCHED_KEY);
         if (!primaryKey) {
             core.warning('Error retrieving key from state.');
             return;

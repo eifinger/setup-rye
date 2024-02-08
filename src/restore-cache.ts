@@ -1,3 +1,4 @@
+import * as crypto from 'crypto'
 import * as cache from '@actions/cache'
 import * as glob from '@actions/glob'
 import * as core from '@actions/core'
@@ -7,9 +8,10 @@ import {exists} from '@actions/io/lib/io-util'
 import {getLinuxInfo} from './utils'
 
 export const STATE_CACHE_PRIMARY_KEY = 'cache-primary-key'
-export const CACHE_MATCHED_KEY = 'cache-matched-key'
+export const STATE_CACHE_MATCHED_KEY = 'cache-matched-key'
 const CACHE_DEPENDENCY_PATH = 'requirements**.lock'
-const workingDir = `/${core.getInput('working-directory')}` || ''
+const workingDirInput = core.getInput('working-directory')
+const workingDir = workingDirInput ? `/${workingDirInput}` : ''
 const cachePath = `${process.env['GITHUB_WORKSPACE']}${workingDir}/.venv`
 const cacheLocalStoragePath =
   `${core.getInput('cache-local-storage-path')}` || ''
@@ -48,12 +50,13 @@ async function computeKeys(
   version: string
 ): Promise<{primaryKey: string; restoreKey: string}> {
   core.debug(`Computing cache key for ${cacheDependencyPath}`)
-  const hash = await glob.hashFiles(cacheDependencyPath)
-  let primaryKey = ''
-  let restoreKey = ''
+  const dependencyPathHash = await glob.hashFiles(cacheDependencyPath)
+  const workingDirHash = workingDir
+    ? `-${crypto.createHash('sha256').update(workingDir).digest('hex')}`
+    : ''
   const osInfo = await getLinuxInfo()
-  primaryKey = `${cachePrefix}-${process.env['RUNNER_OS']}-${osInfo.osVersion}-${osInfo.osName}-rye-${version}-${workingDir}-${hash}`
-  restoreKey = `${cachePrefix}-${process.env['RUNNER_OS']}-${osInfo.osVersion}-${osInfo.osName}-rye-${version}-${workingDir}`
+  const primaryKey = `${cachePrefix}-setup-rye-${process.env['RUNNER_OS']}-${osInfo.osVersion}-${osInfo.osName}-rye-${version}${workingDirHash}-${dependencyPathHash}`
+  const restoreKey = `${cachePrefix}-setup-rye-${process.env['RUNNER_OS']}-${osInfo.osVersion}-${osInfo.osName}-rye-${version}${workingDirHash}`
   return {primaryKey, restoreKey}
 }
 
@@ -62,7 +65,7 @@ function handleMatchResult(
   primaryKey: string
 ): void {
   if (matchedKey) {
-    core.saveState(CACHE_MATCHED_KEY, matchedKey)
+    core.saveState(STATE_CACHE_MATCHED_KEY, matchedKey)
     core.info(`Cache restored from key: ${matchedKey}`)
   } else {
     core.info(`Cache is not found`)
@@ -70,11 +73,13 @@ function handleMatchResult(
   core.setOutput('cache-hit', matchedKey === primaryKey)
 }
 
-async function restoreCacheLocal(primaryKey: string): Promise<string> {
+async function restoreCacheLocal(
+  primaryKey: string
+): Promise<string | undefined> {
   const storedCache = `${cacheLocalStoragePath}/${primaryKey}`
   if (!(await exists(storedCache))) {
     core.info(`Local cache is not found: ${storedCache}`)
-    return ''
+    return
   }
   await cp(storedCache, cachePath, {
     copySourceDirectory: false,
