@@ -4,7 +4,8 @@ import {mkdirP, cp} from '@actions/io/'
 import {STATE_CACHE_MATCHED_KEY, STATE_CACHE_PRIMARY_KEY} from './restore-cache'
 
 const enableCache = core.getInput('enable-cache') === 'true'
-const workingDir = `/${core.getInput('working-directory')}` || ''
+const workingDirInput = core.getInput('working-directory')
+const workingDir = workingDirInput ? `/${workingDirInput}` : ''
 const cacheLocalStoragePath =
   `${core.getInput('cache-local-storage-path')}` || ''
 const cachePath = `${process.env['GITHUB_WORKSPACE']}${workingDir}/.venv`
