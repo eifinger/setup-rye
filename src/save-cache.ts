@@ -1,7 +1,7 @@
 import * as cache from '@actions/cache'
 import * as core from '@actions/core'
 import {mkdirP, cp} from '@actions/io/'
-import {CACHE_MATCHED_KEY, STATE_CACHE_PRIMARY_KEY} from './restore-cache'
+import {STATE_CACHE_MATCHED_KEY, STATE_CACHE_PRIMARY_KEY} from './restore-cache'
 
 const enableCache = core.getInput('enable-cache') === 'true'
 const workingDir = `/${core.getInput('working-directory')}` || ''
@@ -22,7 +22,7 @@ export async function run(): Promise<void> {
 
 async function saveCache(): Promise<void> {
   const primaryKey = core.getState(STATE_CACHE_PRIMARY_KEY)
-  const matchedKey = core.getState(CACHE_MATCHED_KEY)
+  const matchedKey = core.getState(STATE_CACHE_MATCHED_KEY)
 
   if (!primaryKey) {
     core.warning('Error retrieving key from state.')
