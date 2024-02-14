@@ -1,0 +1,25 @@
+name: 'Update Checksums'
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * *"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: node dist/update-checksums/index.js src/checksums.ts ${{ secrets.GITHUB_TOKEN }}
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v4
+        with:
+            commit-message: "chore: update checksums"
+            title: "chore: update checksums"
+            body: "chore: update checksums"
+            base: main
+            labels: automated-pr
+            branch: update-checksums-pr
+            delete-branch: true

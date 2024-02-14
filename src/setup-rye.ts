@@ -10,11 +10,11 @@ import {
   Architecture,
   OWNER,
   REPO,
-  KNOWN_CHECKSUMS,
   validateCheckSum,
   getArch,
   isknownVersion
 } from './utils'
+import {KNOWN_CHECKSUMS} from './checksums'
 
 async function run(): Promise<void> {
   const platform = 'linux'
