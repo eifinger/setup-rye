@@ -32867,11 +32867,11 @@ function run() {
         const filePath = process.argv.slice(2)[0];
         const github_token = process.argv.slice(2)[1];
         const octokit = github.getOctokit(github_token);
-        const response = yield octokit.rest.repos.listReleases({
+        const response = yield octokit.paginate(octokit.rest.repos.listReleases, {
             owner: utils_1.OWNER,
             repo: utils_1.REPO
         });
-        const downloadUrls = response.data.flatMap(release => release.assets
+        const downloadUrls = response.flatMap(release => release.assets
             .filter(asset => asset.name.endsWith('.sha256'))
             .map(asset => asset.browser_download_url));
         yield updateChecksums(filePath, downloadUrls);
