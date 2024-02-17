@@ -9,11 +9,11 @@ async function run(): Promise<void> {
 
   const octokit = github.getOctokit(github_token)
 
-  const response = await octokit.rest.repos.listReleases({
+  const response = await octokit.paginate(octokit.rest.repos.listReleases, {
     owner: OWNER,
     repo: REPO
   })
-  const downloadUrls: string[] = response.data.flatMap(release =>
+  const downloadUrls: string[] = response.flatMap(release =>
     release.assets
       .filter(asset => asset.name.endsWith('.sha256'))
       .map(asset => asset.browser_download_url)
