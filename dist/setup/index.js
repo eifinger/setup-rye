@@ -92094,7 +92094,7 @@ function handleMatchResult(matchedKey, primaryKey) {
         core.info(`Cache restored from key: ${matchedKey}`);
     }
     else {
-        core.info(`Cache is not found`);
+        core.info(`No cache found for key: ${primaryKey}`);
     }
     core.setOutput('cache-hit', matchedKey === primaryKey);
 }
