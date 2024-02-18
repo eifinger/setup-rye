@@ -174,6 +174,7 @@ async function installRye(
   core.debug(`Created temporary directory ${tempDir}`)
   const options: exec.ExecOptions = {
     cwd: tempDir,
+    silent: !core.isDebug(),
     env: {
       ...process.env,
       RYE_HOME: tempDir

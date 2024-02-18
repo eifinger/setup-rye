@@ -92308,6 +92308,7 @@ function installRye(downloadPath, arch, version) {
         core.debug(`Created temporary directory ${tempDir}`);
         const options = {
             cwd: tempDir,
+            silent: !core.isDebug(),
             env: Object.assign(Object.assign({}, process.env), { RYE_HOME: tempDir })
         };
         core.info(`Installing Rye into ${tempDir}`);
