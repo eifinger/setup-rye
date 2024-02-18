@@ -13,10 +13,21 @@ concurrency:
 
 jobs:
   test-rye-sync:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, macos-14, oracle-aarch64]
     steps:
       - uses: actions/checkout@v4
       - name: Setup rye
         uses: ./
       - run: rye sync
         working-directory: __tests__/fixtures/rye-project
+      - name: Rye path is not added to .profile
+        run: |
+          if ! grep -q "rye" ~/.profile;
+          then
+            exit 0
+          else
+            exit 1
+          fi

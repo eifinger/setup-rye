@@ -11,7 +11,10 @@ concurrency:
 
 jobs:
   test-setup-cache:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, macos-14]
     steps:
       - uses: actions/checkout@v4
       - name: Setup with cache
@@ -20,11 +23,14 @@ jobs:
           version: '0.11.0'
           enable-cache: true
           working-directory: __tests__/fixtures/rye-project
-          cache-prefix: ${{ github.run_id }}-${{ github.run_attempt }}
+          cache-prefix: ${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.os }}
       - run: rye sync
         working-directory: __tests__/fixtures/rye-project
   test-restore-cache:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, macos-14]
     needs: test-setup-cache
     steps:
       - uses: actions/checkout@v4
@@ -35,7 +41,7 @@ jobs:
             version: '0.11.0'
             enable-cache: true
             working-directory: __tests__/fixtures/rye-project
-            cache-prefix: ${{ github.run_id }}-${{ github.run_attempt }}
+            cache-prefix: ${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.os }}
       - name: Cache was hit
         run: |
           if [ "$CACHE_HIT" != "true" ]; then

@@ -83159,7 +83159,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getLinuxInfo = exports.getArch = exports.isknownVersion = exports.validateCheckSum = exports.OWNER = exports.REPO = exports.WINDOWS_PLATFORMS = exports.WINDOWS_ARCHS = exports.IS_MAC = exports.IS_LINUX = exports.IS_WINDOWS = void 0;
+exports.getLinuxInfo = exports.getArch = exports.isknownVersion = exports.validateCheckSum = exports.compareVersions = exports.ComparisonResult = exports.VERSIONS_WHICH_MODIFY_PROFILE = exports.EARLIEST_VERSION_WITH_NO_MODIFY_PATHSUPPORT = exports.OWNER = exports.REPO = exports.WINDOWS_PLATFORMS = exports.WINDOWS_ARCHS = exports.IS_MAC = exports.IS_LINUX = exports.IS_WINDOWS = void 0;
 const fs = __importStar(__nccwpck_require__(7147));
 const crypto = __importStar(__nccwpck_require__(6113));
 const exec = __importStar(__nccwpck_require__(1514));
@@ -83172,6 +83172,33 @@ exports.WINDOWS_ARCHS = ['x86', 'x64'];
 exports.WINDOWS_PLATFORMS = ['win32', 'win64'];
 exports.REPO = 'rye';
 exports.OWNER = 'mitsuhiko';
+exports.EARLIEST_VERSION_WITH_NO_MODIFY_PATHSUPPORT = '0.25.0';
+exports.VERSIONS_WHICH_MODIFY_PROFILE = [
+    '0.21.0',
+    '0.22.0',
+    '0.23.0',
+    '0.24.0'
+];
+var ComparisonResult;
+(function (ComparisonResult) {
+    ComparisonResult[ComparisonResult["Greater"] = 1] = "Greater";
+    ComparisonResult[ComparisonResult["Equal"] = 0] = "Equal";
+    ComparisonResult[ComparisonResult["Less"] = -1] = "Less";
+})(ComparisonResult || (exports.ComparisonResult = ComparisonResult = {}));
+function compareVersions(versionA, versionB) {
+    const versionPartsA = versionA.split('.').map(Number);
+    const versionPartsB = versionB.split('.').map(Number);
+    for (let i = 0; i < versionPartsA.length; i++) {
+        if (versionPartsA[i] > versionPartsB[i]) {
+            return ComparisonResult.Greater;
+        }
+        else if (versionPartsA[i] < versionPartsB[i]) {
+            return ComparisonResult.Less;
+        }
+    }
+    return ComparisonResult.Equal;
+}
+exports.compareVersions = compareVersions;
 function validateCheckSum(filePath, expected) {
     return __awaiter(this, void 0, void 0, function* () {
         return new Promise((resolve, reject) => {

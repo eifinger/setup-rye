@@ -10,10 +10,13 @@ import {
   Architecture,
   OWNER,
   REPO,
+  EARLIEST_VERSION_WITH_NO_MODIFY_PATHSUPPORT,
+  VERSIONS_WHICH_MODIFY_PROFILE,
   validateCheckSum,
   getArch,
   isknownVersion,
-  IS_MAC
+  IS_MAC,
+  compareVersions
 } from './utils'
 import {KNOWN_CHECKSUMS} from './checksums'
 
@@ -30,6 +33,11 @@ async function run(): Promise<void> {
       throw new Error(`Unsupported architecture: ${process.arch}`)
     }
     const version = await resolveVersion(versionInput)
+    if (VERSIONS_WHICH_MODIFY_PROFILE.includes(version)) {
+      core.warning(
+        `Rye version ${version} adds a wrong path to the file ~/.profile. Consider using version ${EARLIEST_VERSION_WITH_NO_MODIFY_PATHSUPPORT} or later instead.`
+      )
+    }
     core.setOutput('rye-version', version)
 
     let cachedPath = tryGetFromCache(arch, version)
@@ -182,7 +190,13 @@ async function installRye(
     }
   }
   core.info(`Installing Rye into ${tempDir}`)
-  await exec.exec(downloadPath, ['self', 'install', '--yes'], options)
+  const execArgs = ['self', 'install', '--yes']
+  if (
+    compareVersions(version, EARLIEST_VERSION_WITH_NO_MODIFY_PATHSUPPORT) >= 0
+  ) {
+    execArgs.push('--no-modify-path')
+  }
+  await exec.exec(downloadPath, execArgs, options)
 
   const cachedPath = await tc.cacheDir(tempDir, 'rye', version, arch)
   core.info(`Moved Rye into ${cachedPath}`)
