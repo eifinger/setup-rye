@@ -13,7 +13,38 @@ export const WINDOWS_PLATFORMS = ['win32', 'win64']
 export const REPO = 'rye'
 export const OWNER = 'mitsuhiko'
 
+export const EARLIEST_VERSION_WITH_NO_MODIFY_PATHSUPPORT = '0.25.0'
+export const VERSIONS_WHICH_MODIFY_PROFILE = [
+  '0.21.0',
+  '0.22.0',
+  '0.23.0',
+  '0.24.0'
+]
+
 export type Architecture = 'x86' | 'x86_64' | 'aarch64'
+
+export enum ComparisonResult {
+  Greater = 1,
+  Equal = 0,
+  Less = -1
+}
+
+export function compareVersions(
+  versionA: string,
+  versionB: string
+): ComparisonResult {
+  const versionPartsA = versionA.split('.').map(Number)
+  const versionPartsB = versionB.split('.').map(Number)
+
+  for (let i = 0; i < versionPartsA.length; i++) {
+    if (versionPartsA[i] > versionPartsB[i]) {
+      return ComparisonResult.Greater
+    } else if (versionPartsA[i] < versionPartsB[i]) {
+      return ComparisonResult.Less
+    }
+  }
+  return ComparisonResult.Equal
+}
 
 export async function validateCheckSum(
   filePath: string,

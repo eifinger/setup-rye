@@ -8,6 +8,8 @@
       "project": "./tsconfig.json"
     },
     "rules": {
+      "no-shadow": "off",
+      "@typescript-eslint/no-shadow": ["error"],
       "i18n-text/no-en": "off",
       "eslint-comments/no-use": "off",
       "import/no-namespace": "off",
