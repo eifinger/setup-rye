@@ -69,7 +69,7 @@ function handleMatchResult(
     core.saveState(STATE_CACHE_MATCHED_KEY, matchedKey)
     core.info(`Cache restored from key: ${matchedKey}`)
   } else {
-    core.info(`Cache is not found`)
+    core.info(`No cache found for key: ${primaryKey}`)
   }
   core.setOutput('cache-hit', matchedKey === primaryKey)
 }
