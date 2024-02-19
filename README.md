@@ -97,6 +97,13 @@ This can be useful if you are on a self hosted runner and want to save time and 
     cache-local-storage-path: '/path/to/cache'
 ```
 
+It is recommended to cleanup the storage path to avoid running out of disk space.
+One option is to use a cron job to delete files older than 7 days like below.
+
+```yaml
+0 0 * * * find /home/ubuntu/setup-rye-cache -type f -mtime +7 -exec rm -rf {} \;
+```
+
 ## How it works
 
 This action downloads rye from the releases of the [rye repo](https://github.com/mitsuhiko/rye) and uses the [GitHub Actions Toolkit](https://github.com/actions/toolkit) to cache it as a tool to speed up consecutive runs especially on self-hosted runners.
