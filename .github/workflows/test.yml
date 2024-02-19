@@ -14,7 +14,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, oracle-aarch64]
+        os: [ubuntu-latest, macos-latest, macos-14, oracle-aarch64]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -28,7 +28,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, oracle-aarch64]
+        os: [ubuntu-latest, macos-latest, macos-14, oracle-aarch64]
     steps:
       - uses: actions/checkout@v4
       - name: Should not be on path

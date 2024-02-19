@@ -92169,7 +92169,7 @@ const utils_1 = __nccwpck_require__(1314);
 const checksums_1 = __nccwpck_require__(1541);
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
-        const platform = 'linux';
+        const platform = utils_1.IS_MAC ? 'macos' : 'linux';
         const arch = (0, utils_1.getArch)();
         const versionInput = core.getInput('version');
         const checkSum = core.getInput('checksum');

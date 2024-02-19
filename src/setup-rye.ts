@@ -12,12 +12,13 @@ import {
   REPO,
   validateCheckSum,
   getArch,
-  isknownVersion
+  isknownVersion,
+  IS_MAC
 } from './utils'
 import {KNOWN_CHECKSUMS} from './checksums'
 
 async function run(): Promise<void> {
-  const platform = 'linux'
+  const platform = IS_MAC ? 'macos' : 'linux'
   const arch = getArch()
   const versionInput = core.getInput('version')
   const checkSum = core.getInput('checksum')
