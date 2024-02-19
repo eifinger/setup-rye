@@ -10,7 +10,7 @@ Set up your GitHub Actions workflow with a specific version of [rye](https://rye
 
 ## Limitations
 
-1. Currently only linux is supported see [issue #10](https://github.com/eifinger/setup-rye/issues/10)
+1. Currently only Linux and macOS is supported see [issue #10](https://github.com/eifinger/setup-rye/issues/10)
 
 ## Usage
 
