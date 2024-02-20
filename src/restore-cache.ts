@@ -5,7 +5,7 @@ import * as core from '@actions/core'
 import {cp} from '@actions/io/'
 import {exists} from '@actions/io/lib/io-util'
 
-import {getLinuxInfo} from './utils'
+import {IS_MAC, getLinuxInfo, getMacOSInfo} from './utils'
 
 export const STATE_CACHE_PRIMARY_KEY = 'cache-primary-key'
 export const STATE_CACHE_MATCHED_KEY = 'cache-matched-key'
@@ -54,7 +54,7 @@ async function computeKeys(
   const workingDirHash = workingDir
     ? `-${crypto.createHash('sha256').update(workingDir).digest('hex')}`
     : ''
-  const osInfo = await getLinuxInfo()
+  const osInfo = IS_MAC ? await getMacOSInfo() : await getLinuxInfo()
   const prefix = cachePrefix ? `${cachePrefix}-` : ''
   const primaryKey = `${prefix}setup-rye-${process.env['RUNNER_OS']}-${osInfo.osVersion}-${osInfo.osName}-rye-${version}${workingDirHash}-${dependencyPathHash}`
   const restoreKey = `${prefix}setup-rye-${process.env['RUNNER_OS']}-${osInfo.osVersion}-${osInfo.osName}-rye-${version}${workingDirHash}`

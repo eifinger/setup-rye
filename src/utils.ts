@@ -80,6 +80,19 @@ export function getArch(): Architecture | undefined {
   }
 }
 
+export async function getMacOSInfo(): Promise<{
+  osName: string
+  osVersion: string
+}> {
+  const {stdout} = await exec.getExecOutput('sw_vers', ['-productVersion'], {
+    silent: true
+  })
+
+  const macOSVersion = stdout.trim()
+
+  return {osName: 'macOS', osVersion: macOSVersion}
+}
+
 export async function getLinuxInfo(): Promise<{
   osName: string
   osVersion: string

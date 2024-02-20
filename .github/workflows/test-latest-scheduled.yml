@@ -19,6 +19,14 @@ jobs:
         os: [ubuntu-latest, macos-latest, macos-14, oracle-aarch64]
     steps:
       - uses: actions/checkout@v4
+      - name: Should not be on path
+        run: |
+          if ! which rye;
+          then
+            exit 0
+          else
+           exit 1
+          fi
       - name: Setup rye
         uses: ./
       - run: rye sync
