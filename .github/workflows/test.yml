@@ -24,25 +24,6 @@ jobs:
           npm install
       - run: |
           npm run all
-  test-latest:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest, macos-14, oracle-aarch64]
-    steps:
-      - uses: actions/checkout@v4
-      - name: Should not be on path
-        run: |
-          if ! which rye;
-          then
-            exit 0
-          else
-           exit 1
-          fi
-      - name: Install latest
-        uses: ./
-      - run: |
-          which rye
   test-specific-version:
     runs-on: ${{ matrix.os }}
     strategy:

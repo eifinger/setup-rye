@@ -92087,7 +92087,7 @@ function computeKeys(cachePrefix, version) {
         const workingDirHash = workingDir
             ? `-${crypto.createHash('sha256').update(workingDir).digest('hex')}`
             : '';
-        const osInfo = yield (0, utils_1.getLinuxInfo)();
+        const osInfo = utils_1.IS_MAC ? yield (0, utils_1.getMacOSInfo)() : yield (0, utils_1.getLinuxInfo)();
         const prefix = cachePrefix ? `${cachePrefix}-` : '';
         const primaryKey = `${prefix}setup-rye-${process.env['RUNNER_OS']}-${osInfo.osVersion}-${osInfo.osName}-rye-${version}${workingDirHash}-${dependencyPathHash}`;
         const restoreKey = `${prefix}setup-rye-${process.env['RUNNER_OS']}-${osInfo.osVersion}-${osInfo.osName}-rye-${version}${workingDirHash}`;
@@ -92383,7 +92383,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getLinuxInfo = exports.getArch = exports.isknownVersion = exports.validateCheckSum = exports.compareVersions = exports.ComparisonResult = exports.VERSIONS_WHICH_MODIFY_PROFILE = exports.EARLIEST_VERSION_WITH_NO_MODIFY_PATHSUPPORT = exports.OWNER = exports.REPO = exports.WINDOWS_PLATFORMS = exports.WINDOWS_ARCHS = exports.IS_MAC = exports.IS_LINUX = exports.IS_WINDOWS = void 0;
+exports.getLinuxInfo = exports.getMacOSInfo = exports.getArch = exports.isknownVersion = exports.validateCheckSum = exports.compareVersions = exports.ComparisonResult = exports.VERSIONS_WHICH_MODIFY_PROFILE = exports.EARLIEST_VERSION_WITH_NO_MODIFY_PATHSUPPORT = exports.OWNER = exports.REPO = exports.WINDOWS_PLATFORMS = exports.WINDOWS_ARCHS = exports.IS_MAC = exports.IS_LINUX = exports.IS_WINDOWS = void 0;
 const fs = __importStar(__nccwpck_require__(7147));
 const crypto = __importStar(__nccwpck_require__(6113));
 const exec = __importStar(__nccwpck_require__(1514));
@@ -92455,6 +92455,16 @@ function getArch() {
     }
 }
 exports.getArch = getArch;
+function getMacOSInfo() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const { stdout } = yield exec.getExecOutput('sw_vers', ['-productVersion'], {
+            silent: true
+        });
+        const macOSVersion = stdout.trim();
+        return { osName: 'macOS', osVersion: macOSVersion };
+    });
+}
+exports.getMacOSInfo = getMacOSInfo;
 function getLinuxInfo() {
     return __awaiter(this, void 0, void 0, function* () {
         const { stdout } = yield exec.getExecOutput('lsb_release', ['-i', '-r', '-s'], {

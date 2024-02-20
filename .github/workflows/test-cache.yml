@@ -23,7 +23,7 @@ jobs:
           version: '0.11.0'
           enable-cache: true
           working-directory: __tests__/fixtures/rye-project
-          cache-prefix: ${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.os }}
+          cache-prefix: ${{ github.run_id }}-${{ github.run_attempt }}
       - run: rye sync
         working-directory: __tests__/fixtures/rye-project
   test-restore-cache:
@@ -41,7 +41,7 @@ jobs:
             version: '0.11.0'
             enable-cache: true
             working-directory: __tests__/fixtures/rye-project
-            cache-prefix: ${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.os }}
+            cache-prefix: ${{ github.run_id }}-${{ github.run_attempt }}
       - name: Cache was hit
         run: |
           if [ "$CACHE_HIT" != "true" ]; then
