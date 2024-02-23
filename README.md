@@ -8,11 +8,9 @@ Set up your GitHub Actions workflow with a specific version of [rye](https://rye
 * Optional: Cache the virtual environment created by rye
 * Optional: Verify the checksum of the downloaded rye executable
 
-## Limitations
-
-1. Currently only Linux and macOS is supported see [issue #10](https://github.com/eifinger/setup-rye/issues/10)
-
 ## Usage
+
+Example workflow can be found [in this repo](https://github.com/eifinger/pywaze/blob/main/.github/workflows/ci.yml)
 
 ```yaml
 - name: Install the latest version of rye
@@ -103,6 +101,10 @@ One option is to use a cron job to delete files older than 7 days like below.
 ```yaml
 0 0 * * * find /home/ubuntu/setup-rye-cache -type f -mtime +7 -exec rm -rf {} \;
 ```
+
+## Limitations
+
+1. Currently only Linux and macOS is supported see [issue #10](https://github.com/eifinger/setup-rye/issues/10)
 
 ## How it works
 
