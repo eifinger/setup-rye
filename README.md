@@ -102,6 +102,17 @@ One option is to use a cron job to delete files older than 7 days like below.
 0 0 * * * find /home/ubuntu/setup-rye-cache -type f -mtime +7 -exec rm -rf {} \;
 ```
 
+### API rate limit
+
+To avoid hitting the error `API rate limit exceeded` you can supply a GitHub token with the `github-token` input.
+
+```yaml
+- name: Install rye and supply a GitHub token
+  uses: eifinger/setup-rye@v1
+  with:
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+```
+
 ## Limitations
 
 1. Currently only Linux and macOS is supported see [issue #10](https://github.com/eifinger/setup-rye/issues/10)

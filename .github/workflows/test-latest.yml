@@ -1,4 +1,4 @@
-name: 'test-latest-scheduled'
+name: 'test-latest'
 on:
   pull_request:
   push:
@@ -29,6 +29,8 @@ jobs:
           fi
       - name: Setup rye
         uses: ./
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
       - run: rye sync
         working-directory: __tests__/fixtures/rye-project
       - name: Rye path is not added to .profile
@@ -39,3 +41,11 @@ jobs:
           else
             exit 1
           fi
+  test-without-github-token:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup rye
+        uses: ./
+      - run: rye sync
+        working-directory: __tests__/fixtures/rye-project
