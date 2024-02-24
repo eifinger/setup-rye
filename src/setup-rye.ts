@@ -3,8 +3,8 @@ import * as tc from '@actions/tool-cache'
 import * as exec from '@actions/exec'
 import * as io from '@actions/io'
 import * as octokit from '@octokit/rest'
+import * as github from '@actions/github'
 import * as path from 'path'
-import fetch from 'node-fetch'
 import {restoreCache} from './restore-cache'
 import {
   Architecture,
@@ -27,12 +27,13 @@ async function run(): Promise<void> {
   const checkSum = core.getInput('checksum')
   const enableCache = core.getInput('enable-cache') === 'true'
   const cachePrefix = core.getInput('cache-prefix') || ''
+  const githubToken = core.getInput('github-token')
 
   try {
     if (arch === undefined) {
       throw new Error(`Unsupported architecture: ${process.arch}`)
     }
-    const version = await resolveVersion(versionInput)
+    const version = await resolveVersion(versionInput, githubToken)
     if (VERSIONS_WHICH_MODIFY_PROFILE.includes(version)) {
       core.warning(
         `Rye version ${version} adds a wrong path to the file ~/.profile. Consider using version ${EARLIEST_VERSION_WITH_NO_MODIFY_PATHSUPPORT} or later instead.`
@@ -44,7 +45,13 @@ async function run(): Promise<void> {
     if (cachedPath) {
       core.info(`Found Rye in cache for ${version}`)
     } else {
-      cachedPath = await setupRye(platform, arch, version, checkSum)
+      cachedPath = await setupRye(
+        platform,
+        arch,
+        version,
+        checkSum,
+        githubToken
+      )
     }
 
     addRyeToPath(cachedPath)
@@ -58,12 +65,15 @@ async function run(): Promise<void> {
   }
 }
 
-async function resolveVersion(versionInput: string): Promise<string> {
+async function resolveVersion(
+  versionInput: string,
+  githubToken: string | undefined
+): Promise<string> {
   if (isknownVersion(versionInput)) {
     core.debug(`Version ${versionInput} is known.`)
     return versionInput
   }
-  const availableVersion = await getAvailableVersions()
+  const availableVersion = await getAvailableVersions(githubToken)
   if (!availableVersion.includes(versionInput)) {
     if (versionInput === 'latest') {
       core.info(`Latest version is ${availableVersion[0]}`)
@@ -77,16 +87,36 @@ async function resolveVersion(versionInput: string): Promise<string> {
   return versionInput
 }
 
-async function getAvailableVersions(): Promise<string[]> {
-  const githubClient = new octokit.Octokit({
-    userAgent: 'setup-rye',
-    request: {fetch}
-  })
-  const response = await githubClient.rest.repos.listReleases({
-    owner: OWNER,
-    repo: REPO
-  })
-  const releases = response.data.map(release => release.tag_name)
+async function getAvailableVersions(
+  githubToken: string | undefined
+): Promise<string[]> {
+  let response
+  if (githubToken !== undefined && githubToken !== '') {
+    core.debug(`Using GitHub token to authenticate for GitHub REST API.`)
+    const githubClient = github.getOctokit(githubToken, {
+      userAgent: 'setup-rye'
+    })
+
+    response = await githubClient.paginate(
+      githubClient.rest.repos.listReleases,
+      {
+        owner: OWNER,
+        repo: REPO
+      }
+    )
+  } else {
+    core.debug(`Using anonymous access for GitHub REST API.`)
+    const githubClient = new octokit.Octokit({
+      userAgent: 'setup-rye'
+    })
+    const data = await githubClient.rest.repos.listReleases({
+      owner: OWNER,
+      repo: REPO
+    })
+    response = data.data
+  }
+
+  const releases = response.map(release => release.tag_name)
   return releases
 }
 
@@ -104,9 +134,16 @@ async function setupRye(
   platform: string,
   arch: Architecture,
   version: string,
-  checkSum: string | undefined
+  checkSum: string | undefined,
+  githubToken: string | undefined
 ): Promise<string> {
-  const downloadPath = await downloadVersion(platform, arch, version, checkSum)
+  const downloadPath = await downloadVersion(
+    platform,
+    arch,
+    version,
+    checkSum,
+    githubToken
+  )
   const cachedPath = await installRye(downloadPath, arch, version)
   return cachedPath
 }
@@ -115,14 +152,19 @@ async function downloadVersion(
   platform: string,
   arch: Architecture,
   version: string,
-  checkSum: string | undefined
+  checkSum: string | undefined,
+  githubToken: string | undefined
 ): Promise<string> {
   const binary = `rye-${arch}-${platform}`
   const downloadUrl = `https://github.com/mitsuhiko/rye/releases/download/${version}/${binary}.gz`
   core.info(`Downloading Rye from "${downloadUrl}" ...`)
 
   try {
-    const downloadPath = await tc.downloadTool(downloadUrl)
+    const downloadPath = await tc.downloadTool(
+      downloadUrl,
+      undefined,
+      githubToken
+    )
     let isValid = true
     if (checkSum !== undefined && checkSum !== '') {
       isValid = await validateCheckSum(downloadPath, checkSum)

@@ -8,6 +8,9 @@ inputs:
   checksum:
     description: 'The checksum of the rye version to install'
     required: false
+  github-token:
+    description: 'Used to increase the rate limit when retrieving versions and downloading rye.'
+    required: false
   enable-cache:
     description: 'Enable caching of .venv'
     default: 'false'
