@@ -83177,7 +83177,7 @@ exports.IS_MAC = process.platform === 'darwin';
 exports.WINDOWS_ARCHS = ['x86', 'x64'];
 exports.WINDOWS_PLATFORMS = ['win32', 'win64'];
 exports.REPO = 'rye';
-exports.OWNER = 'mitsuhiko';
+exports.OWNER = 'astral-sh';
 exports.EARLIEST_VERSION_WITH_NO_MODIFY_PATHSUPPORT = '0.25.0';
 exports.VERSIONS_WHICH_MODIFY_PROFILE = [
     '0.21.0',

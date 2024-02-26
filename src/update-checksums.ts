@@ -44,7 +44,7 @@ async function updateChecksums(
 }
 
 function getKey(downloadUrl: string): string {
-  // https://github.com/mitsuhiko/rye/releases/download/0.4.0/rye-x86_64-windows.exe.sha256
+  // https://github.com/astral-sh/rye/releases/download/0.4.0/rye-x86_64-windows.exe.sha256
   const parts = downloadUrl.split('/')
   const fileName = parts[parts.length - 1]
   const name = fileName.split('.')[0].split('rye-')[1]

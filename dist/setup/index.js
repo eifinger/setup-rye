@@ -88286,7 +88286,7 @@ function setupRye(platform, arch, version, checkSum, githubToken) {
 function downloadVersion(platform, arch, version, checkSum, githubToken) {
     return __awaiter(this, void 0, void 0, function* () {
         const binary = `rye-${arch}-${platform}`;
-        const downloadUrl = `https://github.com/mitsuhiko/rye/releases/download/${version}/${binary}.gz`;
+        const downloadUrl = `https://github.com/astral-sh/rye/releases/download/${version}/${binary}.gz`;
         core.info(`Downloading Rye from "${downloadUrl}" ...`);
         try {
             const downloadPath = yield tc.downloadTool(downloadUrl, undefined, githubToken);
@@ -88424,7 +88424,7 @@ exports.IS_MAC = process.platform === 'darwin';
 exports.WINDOWS_ARCHS = ['x86', 'x64'];
 exports.WINDOWS_PLATFORMS = ['win32', 'win64'];
 exports.REPO = 'rye';
-exports.OWNER = 'mitsuhiko';
+exports.OWNER = 'astral-sh';
 exports.EARLIEST_VERSION_WITH_NO_MODIFY_PATHSUPPORT = '0.25.0';
 exports.VERSIONS_WHICH_MODIFY_PROFILE = [
     '0.21.0',

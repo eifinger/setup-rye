@@ -156,7 +156,7 @@ async function downloadVersion(
   githubToken: string | undefined
 ): Promise<string> {
   const binary = `rye-${arch}-${platform}`
-  const downloadUrl = `https://github.com/mitsuhiko/rye/releases/download/${version}/${binary}.gz`
+  const downloadUrl = `https://github.com/astral-sh/rye/releases/download/${version}/${binary}.gz`
   core.info(`Downloading Rye from "${downloadUrl}" ...`)
 
   try {

@@ -32,7 +32,7 @@ You can also specify a specific version of rye
 
 You can also specify a checksum to validate the downloaded file.
 Checksums of versions 0.12.0 and later are automatically verified by this action.
-The sha265 hashes can be found on the [releases page](https://github.com/mitsuhiko/rye/releases)
+The sha265 hashes can be found on the [releases page](https://github.com/astral-sh/rye/releases)
 of the rye repo.
 
 ```yaml
@@ -119,7 +119,7 @@ To avoid hitting the error `API rate limit exceeded` you can supply a GitHub tok
 
 ## How it works
 
-This action downloads rye from the releases of the [rye repo](https://github.com/mitsuhiko/rye) and uses the [GitHub Actions Toolkit](https://github.com/actions/toolkit) to cache it as a tool to speed up consecutive runs especially on self-hosted runners.
+This action downloads rye from the releases of the [rye repo](https://github.com/astral-sh/rye) and uses the [GitHub Actions Toolkit](https://github.com/actions/toolkit) to cache it as a tool to speed up consecutive runs especially on self-hosted runners.
 
 The installed version of rye is then added to the runner path so other steps can just use it by calling `rye`.
 
