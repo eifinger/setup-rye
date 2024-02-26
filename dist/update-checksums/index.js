@@ -32907,7 +32907,7 @@ function updateChecksums(filePath, downloadUrls) {
     });
 }
 function getKey(downloadUrl) {
-    // https://github.com/mitsuhiko/rye/releases/download/0.4.0/rye-x86_64-windows.exe.sha256
+    // https://github.com/astral-sh/rye/releases/download/0.4.0/rye-x86_64-windows.exe.sha256
     const parts = downloadUrl.split('/');
     const fileName = parts[parts.length - 1];
     const name = fileName.split('.')[0].split('rye-')[1];
@@ -32976,7 +32976,7 @@ exports.IS_MAC = process.platform === 'darwin';
 exports.WINDOWS_ARCHS = ['x86', 'x64'];
 exports.WINDOWS_PLATFORMS = ['win32', 'win64'];
 exports.REPO = 'rye';
-exports.OWNER = 'mitsuhiko';
+exports.OWNER = 'astral-sh';
 exports.EARLIEST_VERSION_WITH_NO_MODIFY_PATHSUPPORT = '0.25.0';
 exports.VERSIONS_WHICH_MODIFY_PROFILE = [
     '0.21.0',
