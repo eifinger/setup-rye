@@ -242,13 +242,14 @@ async function installRye(
 
   const cachedPath = await tc.cacheDir(tempDir, 'rye', version, arch)
   core.info(`Moved Rye into ${cachedPath}`)
-  core.exportVariable('RYE_HOME', cachedPath)
   return cachedPath
 }
 
 function addRyeToPath(cachedPath: string): void {
   core.addPath(`${cachedPath}/shims`)
   core.info(`Added ${cachedPath}/shims to the path`)
+  core.exportVariable('RYE_HOME', `${cachedPath}/.rye`)
+  core.debug(`Set RYE_HOME to ${cachedPath}/.rye`)
 }
 
 function addMatchers(): void {

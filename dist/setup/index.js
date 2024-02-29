@@ -88363,13 +88363,14 @@ function installRye(downloadPath, arch, version) {
         yield exec.exec(downloadPath, execArgs, options);
         const cachedPath = yield tc.cacheDir(tempDir, 'rye', version, arch);
         core.info(`Moved Rye into ${cachedPath}`);
-        core.exportVariable('RYE_HOME', cachedPath);
         return cachedPath;
     });
 }
 function addRyeToPath(cachedPath) {
     core.addPath(`${cachedPath}/shims`);
     core.info(`Added ${cachedPath}/shims to the path`);
+    core.exportVariable('RYE_HOME', `${cachedPath}/.rye`);
+    core.debug(`Set RYE_HOME to ${cachedPath}/.rye`);
 }
 function addMatchers() {
     const matchersPath = path.join(__dirname, '../..', '.github');
