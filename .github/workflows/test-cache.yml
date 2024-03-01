@@ -49,6 +49,8 @@ jobs:
           fi
         env:
           CACHE_HIT: ${{ steps.restore.outputs.cache-hit }}
+      - run: rye sync
+        working-directory: __tests__/fixtures/rye-project
 
   test-setup-cache-local:
     runs-on: oracle-aarch64
@@ -85,3 +87,5 @@ jobs:
           fi
         env:
           CACHE_HIT: ${{ steps.restore.outputs.cache-hit }}
+      - run: rye sync
+        working-directory: __tests__/fixtures/rye-project

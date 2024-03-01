@@ -4,26 +4,25 @@ import * as glob from '@actions/glob'
 import * as core from '@actions/core'
 import {cp} from '@actions/io/'
 import {exists} from '@actions/io/lib/io-util'
+import {getArch} from './utils'
 
-import {IS_MAC, getLinuxInfo, getMacOSInfo} from './utils'
-
-export const STATE_CACHE_PRIMARY_KEY = 'cache-primary-key'
+export const STATE_CACHE_KEY = 'cache-key'
 export const STATE_CACHE_MATCHED_KEY = 'cache-matched-key'
-const CACHE_VERSION = '1'
-const CACHE_DEPENDENCY_PATH = 'requirements**.lock'
-const workingDirInput = core.getInput('working-directory')
-const workingDir = workingDirInput ? `/${workingDirInput}` : ''
-const cachePath = `${process.env['GITHUB_WORKSPACE']}${workingDir}/.venv`
+export const workingDirInput = core.getInput('working-directory')
+export const workingDir = workingDirInput ? `/${workingDirInput}` : ''
+export const venvPath = `${process.env['GITHUB_WORKSPACE']}${workingDir}/.venv`
+export const ryeHomePath = `${process.env['GITHUB_WORKSPACE']}${workingDir}/.rye`
+const CACHE_VERSION = '2'
 const cacheLocalStoragePath =
   `${core.getInput('cache-local-storage-path')}` || ''
-const cacheDependencyPath = `${process.env['GITHUB_WORKSPACE']}${workingDir}/${CACHE_DEPENDENCY_PATH}`
+const cacheDependencyPath = `${process.env['GITHUB_WORKSPACE']}${workingDir}/requirements**.lock`
 
 export async function restoreCache(
   cachePrefix: string,
   version: string
 ): Promise<void> {
-  const {primaryKey, restoreKey} = await computeKeys(cachePrefix, version)
-  if (primaryKey.endsWith('-')) {
+  const cacheKey = await computeKeys(cachePrefix, version)
+  if (cacheKey.endsWith('-')) {
     throw new Error(
       `No file in ${process.cwd()} matched to [${cacheDependencyPath}], make sure you have checked out the target repository`
     )
@@ -32,8 +31,8 @@ export async function restoreCache(
   let matchedKey: string | undefined
   try {
     matchedKey = cacheLocalStoragePath
-      ? await restoreCacheLocal(primaryKey)
-      : await cache.restoreCache([cachePath], primaryKey, [restoreKey])
+      ? await restoreCacheLocal(cacheKey)
+      : await cache.restoreCache([venvPath, ryeHomePath], cacheKey)
   } catch (err) {
     const message = (err as Error).message
     core.warning(message)
@@ -41,25 +40,21 @@ export async function restoreCache(
     return
   }
 
-  core.saveState(STATE_CACHE_PRIMARY_KEY, primaryKey)
+  core.saveState(STATE_CACHE_KEY, cacheKey)
 
-  handleMatchResult(matchedKey, primaryKey)
+  handleMatchResult(matchedKey, cacheKey)
 }
 
 async function computeKeys(
   cachePrefix: string,
   version: string
-): Promise<{primaryKey: string; restoreKey: string}> {
-  core.debug(`Computing cache key for ${cacheDependencyPath}`)
-  const dependencyPathHash = await glob.hashFiles(cacheDependencyPath)
+): Promise<string> {
+  const cacheDependencyPathHash = await glob.hashFiles(cacheDependencyPath)
   const workingDirHash = workingDir
     ? `-${crypto.createHash('sha256').update(workingDir).digest('hex')}`
     : ''
-  const osInfo = IS_MAC ? await getMacOSInfo() : await getLinuxInfo()
   const prefix = cachePrefix ? `${cachePrefix}-` : ''
-  const primaryKey = `${prefix}setup-rye-${CACHE_VERSION}-${osInfo.osVersion}-${osInfo.osName}-rye-${version}${workingDirHash}-${dependencyPathHash}`
-  const restoreKey = `${prefix}setup-rye-${CACHE_VERSION}-${osInfo.osVersion}-${osInfo.osName}-rye-${version}${workingDirHash}`
-  return {primaryKey, restoreKey}
+  return `${prefix}setup-rye-${CACHE_VERSION}-${process.env['RUNNER_OS']}-${getArch()}-rye-${version}${workingDirHash}-${cacheDependencyPathHash}`
 }
 
 function handleMatchResult(
@@ -83,8 +78,10 @@ async function restoreCacheLocal(
     core.info(`Local cache is not found: ${storedCache}`)
     return
   }
-  await cp(storedCache, cachePath, {
-    copySourceDirectory: false,
+  await cp(`${storedCache}/.venv`, venvPath, {
+    recursive: true
+  })
+  await cp(`${storedCache}/.rye`, ryeHomePath, {
     recursive: true
   })
   return primaryKey

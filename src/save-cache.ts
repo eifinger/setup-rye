@@ -1,14 +1,16 @@
 import * as cache from '@actions/cache'
 import * as core from '@actions/core'
 import {mkdirP, cp} from '@actions/io/'
-import {STATE_CACHE_MATCHED_KEY, STATE_CACHE_PRIMARY_KEY} from './restore-cache'
+import {
+  STATE_CACHE_MATCHED_KEY,
+  STATE_CACHE_KEY,
+  venvPath,
+  ryeHomePath
+} from './restore-cache'
 
 const enableCache = core.getInput('enable-cache') === 'true'
-const workingDirInput = core.getInput('working-directory')
-const workingDir = workingDirInput ? `/${workingDirInput}` : ''
 const cacheLocalStoragePath =
   `${core.getInput('cache-local-storage-path')}` || ''
-const cachePath = `${process.env['GITHUB_WORKSPACE']}${workingDir}/.venv`
 
 export async function run(): Promise<void> {
   try {
@@ -22,32 +24,33 @@ export async function run(): Promise<void> {
 }
 
 async function saveCache(): Promise<void> {
-  const primaryKey = core.getState(STATE_CACHE_PRIMARY_KEY)
+  const cacheKey = core.getState(STATE_CACHE_KEY)
   const matchedKey = core.getState(STATE_CACHE_MATCHED_KEY)
 
-  if (!primaryKey) {
+  if (!cacheKey) {
     core.warning('Error retrieving key from state.')
     return
-  } else if (matchedKey === primaryKey) {
+  } else if (matchedKey === cacheKey) {
     // no change in target directories
-    core.info(
-      `Cache hit occurred on the primary key ${primaryKey}, not saving cache.`
-    )
+    core.info(`Cache hit occurred on key ${cacheKey}, not saving cache.`)
     return
   }
-  core.info(`Saving cache path: ${cachePath}`)
+  core.info(`Saving .venv path: ${venvPath}`)
+  core.info(`Saving .rye path: ${ryeHomePath}`)
   cacheLocalStoragePath
-    ? await saveCacheLocal(primaryKey)
-    : await cache.saveCache([cachePath], primaryKey)
+    ? await saveCacheLocal(cacheKey)
+    : await cache.saveCache([venvPath, ryeHomePath], cacheKey)
 
-  core.info(`Cache saved with the key: ${primaryKey}`)
+  core.info(`Cache saved with the key: ${cacheKey}`)
 }
 
-async function saveCacheLocal(primaryKey: string): Promise<void> {
-  const targetPath = `${cacheLocalStoragePath}/${primaryKey}`
+async function saveCacheLocal(cacheKey: string): Promise<void> {
+  const targetPath = `${cacheLocalStoragePath}/${cacheKey}`
   await mkdirP(targetPath)
-  await cp(cachePath, targetPath, {
-    copySourceDirectory: false,
+  await cp(venvPath, `${targetPath}/.venv`, {
+    recursive: true
+  })
+  await cp(ryeHomePath, `${targetPath}/.rye`, {
     recursive: true
   })
 }

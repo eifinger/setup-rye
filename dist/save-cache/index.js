@@ -82955,7 +82955,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.restoreCache = exports.STATE_CACHE_MATCHED_KEY = exports.STATE_CACHE_PRIMARY_KEY = void 0;
+exports.restoreCache = exports.ryeHomePath = exports.venvPath = exports.workingDir = exports.workingDirInput = exports.STATE_CACHE_MATCHED_KEY = exports.STATE_CACHE_KEY = void 0;
 const crypto = __importStar(__nccwpck_require__(6113));
 const cache = __importStar(__nccwpck_require__(7799));
 const glob = __importStar(__nccwpck_require__(8090));
@@ -82963,26 +82963,26 @@ const core = __importStar(__nccwpck_require__(2186));
 const io_1 = __nccwpck_require__(7436);
 const io_util_1 = __nccwpck_require__(1962);
 const utils_1 = __nccwpck_require__(1314);
-exports.STATE_CACHE_PRIMARY_KEY = 'cache-primary-key';
+exports.STATE_CACHE_KEY = 'cache-key';
 exports.STATE_CACHE_MATCHED_KEY = 'cache-matched-key';
-const CACHE_VERSION = '1';
-const CACHE_DEPENDENCY_PATH = 'requirements**.lock';
-const workingDirInput = core.getInput('working-directory');
-const workingDir = workingDirInput ? `/${workingDirInput}` : '';
-const cachePath = `${process.env['GITHUB_WORKSPACE']}${workingDir}/.venv`;
+exports.workingDirInput = core.getInput('working-directory');
+exports.workingDir = exports.workingDirInput ? `/${exports.workingDirInput}` : '';
+exports.venvPath = `${process.env['GITHUB_WORKSPACE']}${exports.workingDir}/.venv`;
+exports.ryeHomePath = `${process.env['GITHUB_WORKSPACE']}${exports.workingDir}/.rye`;
+const CACHE_VERSION = '2';
 const cacheLocalStoragePath = `${core.getInput('cache-local-storage-path')}` || '';
-const cacheDependencyPath = `${process.env['GITHUB_WORKSPACE']}${workingDir}/${CACHE_DEPENDENCY_PATH}`;
+const cacheDependencyPath = `${process.env['GITHUB_WORKSPACE']}${exports.workingDir}/requirements**.lock`;
 function restoreCache(cachePrefix, version) {
     return __awaiter(this, void 0, void 0, function* () {
-        const { primaryKey, restoreKey } = yield computeKeys(cachePrefix, version);
-        if (primaryKey.endsWith('-')) {
+        const cacheKey = yield computeKeys(cachePrefix, version);
+        if (cacheKey.endsWith('-')) {
             throw new Error(`No file in ${process.cwd()} matched to [${cacheDependencyPath}], make sure you have checked out the target repository`);
         }
         let matchedKey;
         try {
             matchedKey = cacheLocalStoragePath
-                ? yield restoreCacheLocal(primaryKey)
-                : yield cache.restoreCache([cachePath], primaryKey, [restoreKey]);
+                ? yield restoreCacheLocal(cacheKey)
+                : yield cache.restoreCache([exports.venvPath, exports.ryeHomePath], cacheKey);
         }
         catch (err) {
             const message = err.message;
@@ -82990,23 +82990,19 @@ function restoreCache(cachePrefix, version) {
             core.setOutput('cache-hit', false);
             return;
         }
-        core.saveState(exports.STATE_CACHE_PRIMARY_KEY, primaryKey);
-        handleMatchResult(matchedKey, primaryKey);
+        core.saveState(exports.STATE_CACHE_KEY, cacheKey);
+        handleMatchResult(matchedKey, cacheKey);
     });
 }
 exports.restoreCache = restoreCache;
 function computeKeys(cachePrefix, version) {
     return __awaiter(this, void 0, void 0, function* () {
-        core.debug(`Computing cache key for ${cacheDependencyPath}`);
-        const dependencyPathHash = yield glob.hashFiles(cacheDependencyPath);
-        const workingDirHash = workingDir
-            ? `-${crypto.createHash('sha256').update(workingDir).digest('hex')}`
+        const cacheDependencyPathHash = yield glob.hashFiles(cacheDependencyPath);
+        const workingDirHash = exports.workingDir
+            ? `-${crypto.createHash('sha256').update(exports.workingDir).digest('hex')}`
             : '';
-        const osInfo = utils_1.IS_MAC ? yield (0, utils_1.getMacOSInfo)() : yield (0, utils_1.getLinuxInfo)();
         const prefix = cachePrefix ? `${cachePrefix}-` : '';
-        const primaryKey = `${prefix}setup-rye-${CACHE_VERSION}-${osInfo.osVersion}-${osInfo.osName}-rye-${version}${workingDirHash}-${dependencyPathHash}`;
-        const restoreKey = `${prefix}setup-rye-${CACHE_VERSION}-${osInfo.osVersion}-${osInfo.osName}-rye-${version}${workingDirHash}`;
-        return { primaryKey, restoreKey };
+        return `${prefix}setup-rye-${CACHE_VERSION}-${process.env['RUNNER_OS']}-${(0, utils_1.getArch)()}-rye-${version}${workingDirHash}-${cacheDependencyPathHash}`;
     });
 }
 function handleMatchResult(matchedKey, primaryKey) {
@@ -83026,8 +83022,10 @@ function restoreCacheLocal(primaryKey) {
             core.info(`Local cache is not found: ${storedCache}`);
             return;
         }
-        yield (0, io_1.cp)(storedCache, cachePath, {
-            copySourceDirectory: false,
+        yield (0, io_1.cp)(`${storedCache}/.venv`, exports.venvPath, {
+            recursive: true
+        });
+        yield (0, io_1.cp)(`${storedCache}/.rye`, exports.ryeHomePath, {
             recursive: true
         });
         return primaryKey;
@@ -83081,10 +83079,7 @@ const core = __importStar(__nccwpck_require__(2186));
 const io_1 = __nccwpck_require__(7436);
 const restore_cache_1 = __nccwpck_require__(744);
 const enableCache = core.getInput('enable-cache') === 'true';
-const workingDirInput = core.getInput('working-directory');
-const workingDir = workingDirInput ? `/${workingDirInput}` : '';
 const cacheLocalStoragePath = `${core.getInput('cache-local-storage-path')}` || '';
-const cachePath = `${process.env['GITHUB_WORKSPACE']}${workingDir}/.venv`;
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -83101,30 +83096,33 @@ function run() {
 exports.run = run;
 function saveCache() {
     return __awaiter(this, void 0, void 0, function* () {
-        const primaryKey = core.getState(restore_cache_1.STATE_CACHE_PRIMARY_KEY);
+        const cacheKey = core.getState(restore_cache_1.STATE_CACHE_KEY);
         const matchedKey = core.getState(restore_cache_1.STATE_CACHE_MATCHED_KEY);
-        if (!primaryKey) {
+        if (!cacheKey) {
             core.warning('Error retrieving key from state.');
             return;
         }
-        else if (matchedKey === primaryKey) {
+        else if (matchedKey === cacheKey) {
             // no change in target directories
-            core.info(`Cache hit occurred on the primary key ${primaryKey}, not saving cache.`);
+            core.info(`Cache hit occurred on key ${cacheKey}, not saving cache.`);
             return;
         }
-        core.info(`Saving cache path: ${cachePath}`);
+        core.info(`Saving .venv path: ${restore_cache_1.venvPath}`);
+        core.info(`Saving .rye path: ${restore_cache_1.ryeHomePath}`);
         cacheLocalStoragePath
-            ? yield saveCacheLocal(primaryKey)
-            : yield cache.saveCache([cachePath], primaryKey);
-        core.info(`Cache saved with the key: ${primaryKey}`);
+            ? yield saveCacheLocal(cacheKey)
+            : yield cache.saveCache([restore_cache_1.venvPath, restore_cache_1.ryeHomePath], cacheKey);
+        core.info(`Cache saved with the key: ${cacheKey}`);
     });
 }
-function saveCacheLocal(primaryKey) {
+function saveCacheLocal(cacheKey) {
     return __awaiter(this, void 0, void 0, function* () {
-        const targetPath = `${cacheLocalStoragePath}/${primaryKey}`;
+        const targetPath = `${cacheLocalStoragePath}/${cacheKey}`;
         yield (0, io_1.mkdirP)(targetPath);
-        yield (0, io_1.cp)(cachePath, targetPath, {
-            copySourceDirectory: false,
+        yield (0, io_1.cp)(restore_cache_1.venvPath, `${targetPath}/.venv`, {
+            recursive: true
+        });
+        yield (0, io_1.cp)(restore_cache_1.ryeHomePath, `${targetPath}/.rye`, {
             recursive: true
         });
     });
