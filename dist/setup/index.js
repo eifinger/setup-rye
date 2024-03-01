@@ -88064,7 +88064,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.restoreCache = exports.STATE_CACHE_MATCHED_KEY = exports.STATE_CACHE_PRIMARY_KEY = void 0;
+exports.restoreCache = exports.ryeHomePath = exports.venvPath = exports.workingDir = exports.workingDirInput = exports.STATE_CACHE_MATCHED_KEY = exports.STATE_CACHE_KEY = void 0;
 const crypto = __importStar(__nccwpck_require__(6113));
 const cache = __importStar(__nccwpck_require__(7799));
 const glob = __importStar(__nccwpck_require__(8090));
@@ -88072,26 +88072,26 @@ const core = __importStar(__nccwpck_require__(2186));
 const io_1 = __nccwpck_require__(7436);
 const io_util_1 = __nccwpck_require__(1962);
 const utils_1 = __nccwpck_require__(1314);
-exports.STATE_CACHE_PRIMARY_KEY = 'cache-primary-key';
+exports.STATE_CACHE_KEY = 'cache-key';
 exports.STATE_CACHE_MATCHED_KEY = 'cache-matched-key';
-const CACHE_VERSION = '1';
-const CACHE_DEPENDENCY_PATH = 'requirements**.lock';
-const workingDirInput = core.getInput('working-directory');
-const workingDir = workingDirInput ? `/${workingDirInput}` : '';
-const cachePath = `${process.env['GITHUB_WORKSPACE']}${workingDir}/.venv`;
+exports.workingDirInput = core.getInput('working-directory');
+exports.workingDir = exports.workingDirInput ? `/${exports.workingDirInput}` : '';
+exports.venvPath = `${process.env['GITHUB_WORKSPACE']}${exports.workingDir}/.venv`;
+exports.ryeHomePath = `${process.env['GITHUB_WORKSPACE']}${exports.workingDir}/.rye`;
+const CACHE_VERSION = '2';
 const cacheLocalStoragePath = `${core.getInput('cache-local-storage-path')}` || '';
-const cacheDependencyPath = `${process.env['GITHUB_WORKSPACE']}${workingDir}/${CACHE_DEPENDENCY_PATH}`;
+const cacheDependencyPath = `${process.env['GITHUB_WORKSPACE']}${exports.workingDir}/requirements**.lock`;
 function restoreCache(cachePrefix, version) {
     return __awaiter(this, void 0, void 0, function* () {
-        const { primaryKey, restoreKey } = yield computeKeys(cachePrefix, version);
-        if (primaryKey.endsWith('-')) {
+        const cacheKey = yield computeKeys(cachePrefix, version);
+        if (cacheKey.endsWith('-')) {
             throw new Error(`No file in ${process.cwd()} matched to [${cacheDependencyPath}], make sure you have checked out the target repository`);
         }
         let matchedKey;
         try {
             matchedKey = cacheLocalStoragePath
-                ? yield restoreCacheLocal(primaryKey)
-                : yield cache.restoreCache([cachePath], primaryKey, [restoreKey]);
+                ? yield restoreCacheLocal(cacheKey)
+                : yield cache.restoreCache([exports.venvPath, exports.ryeHomePath], cacheKey);
         }
         catch (err) {
             const message = err.message;
@@ -88099,23 +88099,19 @@ function restoreCache(cachePrefix, version) {
             core.setOutput('cache-hit', false);
             return;
         }
-        core.saveState(exports.STATE_CACHE_PRIMARY_KEY, primaryKey);
-        handleMatchResult(matchedKey, primaryKey);
+        core.saveState(exports.STATE_CACHE_KEY, cacheKey);
+        handleMatchResult(matchedKey, cacheKey);
     });
 }
 exports.restoreCache = restoreCache;
 function computeKeys(cachePrefix, version) {
     return __awaiter(this, void 0, void 0, function* () {
-        core.debug(`Computing cache key for ${cacheDependencyPath}`);
-        const dependencyPathHash = yield glob.hashFiles(cacheDependencyPath);
-        const workingDirHash = workingDir
-            ? `-${crypto.createHash('sha256').update(workingDir).digest('hex')}`
+        const cacheDependencyPathHash = yield glob.hashFiles(cacheDependencyPath);
+        const workingDirHash = exports.workingDir
+            ? `-${crypto.createHash('sha256').update(exports.workingDir).digest('hex')}`
             : '';
-        const osInfo = utils_1.IS_MAC ? yield (0, utils_1.getMacOSInfo)() : yield (0, utils_1.getLinuxInfo)();
         const prefix = cachePrefix ? `${cachePrefix}-` : '';
-        const primaryKey = `${prefix}setup-rye-${CACHE_VERSION}-${osInfo.osVersion}-${osInfo.osName}-rye-${version}${workingDirHash}-${dependencyPathHash}`;
-        const restoreKey = `${prefix}setup-rye-${CACHE_VERSION}-${osInfo.osVersion}-${osInfo.osName}-rye-${version}${workingDirHash}`;
-        return { primaryKey, restoreKey };
+        return `${prefix}setup-rye-${CACHE_VERSION}-${process.env['RUNNER_OS']}-${(0, utils_1.getArch)()}-rye-${version}${workingDirHash}-${cacheDependencyPathHash}`;
     });
 }
 function handleMatchResult(matchedKey, primaryKey) {
@@ -88135,8 +88131,10 @@ function restoreCacheLocal(primaryKey) {
             core.info(`Local cache is not found: ${storedCache}`);
             return;
         }
-        yield (0, io_1.cp)(storedCache, cachePath, {
-            copySourceDirectory: false,
+        yield (0, io_1.cp)(`${storedCache}/.venv`, exports.venvPath, {
+            recursive: true
+        });
+        yield (0, io_1.cp)(`${storedCache}/.rye`, exports.ryeHomePath, {
             recursive: true
         });
         return primaryKey;
@@ -88224,6 +88222,8 @@ function run() {
             if (enableCache) {
                 yield (0, restore_cache_1.restoreCache)(cachePrefix, version);
             }
+            core.exportVariable('RYE_HOME', restore_cache_1.ryeHomePath);
+            core.debug(`Set RYE_HOME to ${restore_cache_1.ryeHomePath}`);
         }
         catch (err) {
             core.setFailed(err.message);
@@ -88255,7 +88255,7 @@ function getAvailableVersions(githubToken) {
         if (githubToken !== undefined && githubToken !== '') {
             core.debug(`Using GitHub token to authenticate for GitHub REST API.`);
             const githubClient = github.getOctokit(githubToken, {
-                userAgent: 'setup-rye'
+                userAgent: 'eifinger/setup-rye'
             });
             response = yield githubClient.paginate(githubClient.rest.repos.listReleases, {
                 owner: utils_1.OWNER,
@@ -88265,7 +88265,7 @@ function getAvailableVersions(githubToken) {
         else {
             core.debug(`Using anonymous access for GitHub REST API.`);
             const githubClient = new octokit.Octokit({
-                userAgent: 'setup-rye'
+                userAgent: 'eifinger/setup-rye'
             });
             const data = yield githubClient.rest.repos.listReleases({
                 owner: utils_1.OWNER,
@@ -88293,7 +88293,7 @@ function setupRye(platform, arch, version, checkSum, githubToken) {
 function downloadVersion(platform, arch, version, checkSum, githubToken) {
     return __awaiter(this, void 0, void 0, function* () {
         const binary = `rye-${arch}-${platform}`;
-        const downloadUrl = `https://github.com/astral-sh/rye/releases/download/${version}/${binary}.gz`;
+        const downloadUrl = `https://github.com/${utils_1.OWNER}/${utils_1.REPO}/releases/download/${version}/${binary}.gz`;
         core.info(`Downloading Rye from "${downloadUrl}" ...`);
         try {
             const downloadPath = yield tc.downloadTool(downloadUrl, undefined, githubToken);
@@ -88370,8 +88370,6 @@ function installRye(downloadPath, arch, version) {
 function addRyeToPath(cachedPath) {
     core.addPath(`${cachedPath}/shims`);
     core.info(`Added ${cachedPath}/shims to the path`);
-    core.exportVariable('RYE_HOME', `${cachedPath}/.rye`);
-    core.debug(`Set RYE_HOME to ${cachedPath}/.rye`);
 }
 function addMatchers() {
     const matchersPath = path.join(__dirname, '../..', '.github');

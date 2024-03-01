@@ -5,7 +5,7 @@ import * as io from '@actions/io'
 import * as octokit from '@octokit/rest'
 import * as github from '@actions/github'
 import * as path from 'path'
-import {restoreCache} from './restore-cache'
+import {restoreCache, ryeHomePath} from './restore-cache'
 import {
   Architecture,
   OWNER,
@@ -60,6 +60,8 @@ async function run(): Promise<void> {
     if (enableCache) {
       await restoreCache(cachePrefix, version)
     }
+    core.exportVariable('RYE_HOME', ryeHomePath)
+    core.debug(`Set RYE_HOME to ${ryeHomePath}`)
   } catch (err) {
     core.setFailed((err as Error).message)
   }
@@ -94,7 +96,7 @@ async function getAvailableVersions(
   if (githubToken !== undefined && githubToken !== '') {
     core.debug(`Using GitHub token to authenticate for GitHub REST API.`)
     const githubClient = github.getOctokit(githubToken, {
-      userAgent: 'setup-rye'
+      userAgent: 'eifinger/setup-rye'
     })
 
     response = await githubClient.paginate(
@@ -107,7 +109,7 @@ async function getAvailableVersions(
   } else {
     core.debug(`Using anonymous access for GitHub REST API.`)
     const githubClient = new octokit.Octokit({
-      userAgent: 'setup-rye'
+      userAgent: 'eifinger/setup-rye'
     })
     const data = await githubClient.rest.repos.listReleases({
       owner: OWNER,
@@ -156,7 +158,7 @@ async function downloadVersion(
   githubToken: string | undefined
 ): Promise<string> {
   const binary = `rye-${arch}-${platform}`
-  const downloadUrl = `https://github.com/astral-sh/rye/releases/download/${version}/${binary}.gz`
+  const downloadUrl = `https://github.com/${OWNER}/${REPO}/releases/download/${version}/${binary}.gz`
   core.info(`Downloading Rye from "${downloadUrl}" ...`)
 
   try {
@@ -248,8 +250,6 @@ async function installRye(
 function addRyeToPath(cachedPath: string): void {
   core.addPath(`${cachedPath}/shims`)
   core.info(`Added ${cachedPath}/shims to the path`)
-  core.exportVariable('RYE_HOME', `${cachedPath}/.rye`)
-  core.debug(`Set RYE_HOME to ${cachedPath}/.rye`)
 }
 
 function addMatchers(): void {
