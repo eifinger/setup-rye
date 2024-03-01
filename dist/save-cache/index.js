@@ -82965,6 +82965,7 @@ const io_util_1 = __nccwpck_require__(1962);
 const utils_1 = __nccwpck_require__(1314);
 exports.STATE_CACHE_PRIMARY_KEY = 'cache-primary-key';
 exports.STATE_CACHE_MATCHED_KEY = 'cache-matched-key';
+const CACHE_VERSION = '1';
 const CACHE_DEPENDENCY_PATH = 'requirements**.lock';
 const workingDirInput = core.getInput('working-directory');
 const workingDir = workingDirInput ? `/${workingDirInput}` : '';
@@ -83003,8 +83004,8 @@ function computeKeys(cachePrefix, version) {
             : '';
         const osInfo = utils_1.IS_MAC ? yield (0, utils_1.getMacOSInfo)() : yield (0, utils_1.getLinuxInfo)();
         const prefix = cachePrefix ? `${cachePrefix}-` : '';
-        const primaryKey = `${prefix}setup-rye-${process.env['RUNNER_OS']}-${osInfo.osVersion}-${osInfo.osName}-rye-${version}${workingDirHash}-${dependencyPathHash}`;
-        const restoreKey = `${prefix}setup-rye-${process.env['RUNNER_OS']}-${osInfo.osVersion}-${osInfo.osName}-rye-${version}${workingDirHash}`;
+        const primaryKey = `${prefix}setup-rye-${CACHE_VERSION}-${osInfo.osVersion}-${osInfo.osName}-rye-${version}${workingDirHash}-${dependencyPathHash}`;
+        const restoreKey = `${prefix}setup-rye-${CACHE_VERSION}-${osInfo.osVersion}-${osInfo.osName}-rye-${version}${workingDirHash}`;
         return { primaryKey, restoreKey };
     });
 }

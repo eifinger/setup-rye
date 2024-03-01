@@ -9,6 +9,7 @@ import {IS_MAC, getLinuxInfo, getMacOSInfo} from './utils'
 
 export const STATE_CACHE_PRIMARY_KEY = 'cache-primary-key'
 export const STATE_CACHE_MATCHED_KEY = 'cache-matched-key'
+const CACHE_VERSION = '1'
 const CACHE_DEPENDENCY_PATH = 'requirements**.lock'
 const workingDirInput = core.getInput('working-directory')
 const workingDir = workingDirInput ? `/${workingDirInput}` : ''
@@ -56,8 +57,8 @@ async function computeKeys(
     : ''
   const osInfo = IS_MAC ? await getMacOSInfo() : await getLinuxInfo()
   const prefix = cachePrefix ? `${cachePrefix}-` : ''
-  const primaryKey = `${prefix}setup-rye-${process.env['RUNNER_OS']}-${osInfo.osVersion}-${osInfo.osName}-rye-${version}${workingDirHash}-${dependencyPathHash}`
-  const restoreKey = `${prefix}setup-rye-${process.env['RUNNER_OS']}-${osInfo.osVersion}-${osInfo.osName}-rye-${version}${workingDirHash}`
+  const primaryKey = `${prefix}setup-rye-${CACHE_VERSION}-${osInfo.osVersion}-${osInfo.osName}-rye-${version}${workingDirHash}-${dependencyPathHash}`
+  const restoreKey = `${prefix}setup-rye-${CACHE_VERSION}-${osInfo.osVersion}-${osInfo.osName}-rye-${version}${workingDirHash}`
   return {primaryKey, restoreKey}
 }
 
