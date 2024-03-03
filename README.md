@@ -14,7 +14,7 @@ Example workflow can be found [in this repo](https://github.com/eifinger/pywaze/
 
 ```yaml
 - name: Install the latest version of rye
-  uses: eifinger/setup-rye@v1
+  uses: eifinger/setup-rye@v2
 ```
 
 ### Install specific version
@@ -23,7 +23,7 @@ You can also specify a specific version of rye
 
 ```yaml
 - name: Install a specific version
-  uses: eifinger/setup-rye@v1
+  uses: eifinger/setup-rye@v2
   with:
     version: '0.12.0'
 ```
@@ -37,7 +37,7 @@ of the rye repo.
 
 ```yaml
 - name: Install a specific version and validate the checksum
-  uses: eifinger/setup-rye@v1
+  uses: eifinger/setup-rye@v2
   with:
     version: '0.12.0'
     checksum: 'c48d850e90649d868d512f60af67c74aa844d80f951fdb38589220662e709da7'
@@ -54,7 +54,7 @@ You can optionally define a custom cache key prefix.
 ```yaml
 - name: Enable caching and define a custom cache key prefix
   id: setup-rye
-  uses: eifinger/setup-rye@v1
+  uses: eifinger/setup-rye@v2
   with:
     enable-cache: true
     cache-prefix: 'optional-prefix'
@@ -76,7 +76,7 @@ relative to the repository root. This is useful for monorepos.
 
 ```yaml
 - name: Enable caching and define a working directory
-  uses: eifinger/setup-rye@v1
+  uses: eifinger/setup-rye@v2
   with:
     enable-cache: true
     working-directory: 'path/to/rye/project'
@@ -89,7 +89,7 @@ This can be useful if you are on a self hosted runner and want to save time and 
 
 ```yaml
 - name: Enable caching and define a custom cache path
-  uses: eifinger/setup-rye@v1
+  uses: eifinger/setup-rye@v2
   with:
     enable-cache: true
     cache-local-storage-path: '/path/to/cache'
@@ -108,7 +108,7 @@ To avoid hitting the error `API rate limit exceeded` you can supply a GitHub tok
 
 ```yaml
 - name: Install rye and supply a GitHub token
-  uses: eifinger/setup-rye@v1
+  uses: eifinger/setup-rye@v2
   with:
     github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
@@ -122,6 +122,7 @@ To avoid hitting the error `API rate limit exceeded` you can supply a GitHub tok
 This action downloads rye from the releases of the [rye repo](https://github.com/astral-sh/rye) and uses the [GitHub Actions Toolkit](https://github.com/actions/toolkit) to cache it as a tool to speed up consecutive runs especially on self-hosted runners.
 
 The installed version of rye is then added to the runner path so other steps can just use it by calling `rye`.
+To prevent interfering the other rye processes on the same runner `RYE_HOME` gets set to the repository roots parent and is cleaned up after a workflow run.
 
 ---
 
