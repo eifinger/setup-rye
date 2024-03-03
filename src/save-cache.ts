@@ -1,6 +1,6 @@
 import * as cache from '@actions/cache'
 import * as core from '@actions/core'
-import {mkdirP, cp} from '@actions/io/'
+import {mkdirP, cp, rmRF} from '@actions/io/'
 import {
   STATE_CACHE_MATCHED_KEY,
   STATE_CACHE_KEY,
@@ -21,6 +21,8 @@ export async function run(): Promise<void> {
     const err = error as Error
     core.setFailed(err.message)
   }
+  rmRF(ryeHomePath)
+  core.info(`Cleaned up RYE_HOME: ${ryeHomePath}`)
 }
 
 async function saveCache(): Promise<void> {

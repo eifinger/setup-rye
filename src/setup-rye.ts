@@ -61,7 +61,7 @@ async function run(): Promise<void> {
       await restoreCache(cachePrefix, version)
     }
     core.exportVariable('RYE_HOME', ryeHomePath)
-    core.debug(`Set RYE_HOME to ${ryeHomePath}`)
+    core.info(`Set RYE_HOME to ${ryeHomePath}`)
   } catch (err) {
     core.setFailed((err as Error).message)
   }

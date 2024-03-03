@@ -88071,14 +88071,15 @@ const glob = __importStar(__nccwpck_require__(8090));
 const core = __importStar(__nccwpck_require__(2186));
 const io_1 = __nccwpck_require__(7436);
 const io_util_1 = __nccwpck_require__(1962);
+const path_1 = __nccwpck_require__(1017);
 const utils_1 = __nccwpck_require__(1314);
 exports.STATE_CACHE_KEY = 'cache-key';
 exports.STATE_CACHE_MATCHED_KEY = 'cache-matched-key';
 exports.workingDirInput = core.getInput('working-directory');
 exports.workingDir = exports.workingDirInput ? `/${exports.workingDirInput}` : '';
 exports.venvPath = `${process.env['GITHUB_WORKSPACE']}${exports.workingDir}/.venv`;
-exports.ryeHomePath = `${process.env['GITHUB_WORKSPACE']}${exports.workingDir}/.rye`;
-const CACHE_VERSION = '2';
+exports.ryeHomePath = (0, path_1.resolve)(`${process.env['GITHUB_WORKSPACE']}/../.rye`);
+const CACHE_VERSION = '3';
 const cacheLocalStoragePath = `${core.getInput('cache-local-storage-path')}` || '';
 const cacheDependencyPath = `${process.env['GITHUB_WORKSPACE']}${exports.workingDir}/requirements**.lock`;
 function restoreCache(cachePrefix, version) {
@@ -88223,7 +88224,7 @@ function run() {
                 yield (0, restore_cache_1.restoreCache)(cachePrefix, version);
             }
             core.exportVariable('RYE_HOME', restore_cache_1.ryeHomePath);
-            core.debug(`Set RYE_HOME to ${restore_cache_1.ryeHomePath}`);
+            core.info(`Set RYE_HOME to ${restore_cache_1.ryeHomePath}`);
         }
         catch (err) {
             core.setFailed(err.message);
