@@ -1,15 +1,22 @@
 import * as core from '@actions/core'
 import * as tc from '@actions/tool-cache'
-import {Architecture, OWNER, REPO, extract, validateChecksum} from '../utils'
+import {
+  Architecture,
+  OWNER,
+  REPO,
+  extract,
+  toolsCacheName,
+  validateChecksum
+} from '../utils'
 
 export function tryGetFromCache(
   arch: Architecture,
   version: string
 ): string | undefined {
-  core.debug(`Trying to get Rye from cache for ${version}...`)
-  const cachedVersions = tc.findAllVersions('rye', arch)
+  core.debug(`Trying to get rye from tool cache for ${version}...`)
+  const cachedVersions = tc.findAllVersions(toolsCacheName, arch)
   core.debug(`Cached versions: ${cachedVersions}`)
-  return tc.find('rye', version, arch)
+  return tc.find(toolsCacheName, version, arch)
 }
 
 export async function downloadVersion(

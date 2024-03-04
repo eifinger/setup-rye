@@ -82955,22 +82955,20 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.restoreCache = exports.ryeHomePath = exports.venvPath = exports.workingDir = exports.workingDirInput = exports.STATE_CACHE_MATCHED_KEY = exports.STATE_CACHE_KEY = void 0;
+exports.restoreCache = exports.venvPath = exports.workingDir = exports.workingDirInput = exports.STATE_CACHE_MATCHED_KEY = exports.STATE_CACHE_KEY = void 0;
 const crypto = __importStar(__nccwpck_require__(6113));
 const cache = __importStar(__nccwpck_require__(7799));
 const glob = __importStar(__nccwpck_require__(8090));
 const core = __importStar(__nccwpck_require__(2186));
 const io_1 = __nccwpck_require__(7436);
 const io_util_1 = __nccwpck_require__(1962);
-const path_1 = __nccwpck_require__(1017);
 const utils_1 = __nccwpck_require__(1314);
 exports.STATE_CACHE_KEY = 'cache-key';
 exports.STATE_CACHE_MATCHED_KEY = 'cache-matched-key';
 exports.workingDirInput = core.getInput('working-directory');
 exports.workingDir = exports.workingDirInput ? `/${exports.workingDirInput}` : '';
 exports.venvPath = `${process.env['GITHUB_WORKSPACE']}${exports.workingDir}/.venv`;
-exports.ryeHomePath = (0, path_1.resolve)(`${process.env['GITHUB_WORKSPACE']}/../.rye`);
-const CACHE_VERSION = '3';
+const CACHE_VERSION = '5';
 const cacheLocalStoragePath = `${core.getInput('cache-local-storage-path')}` || '';
 const cacheDependencyPath = `${process.env['GITHUB_WORKSPACE']}${exports.workingDir}/requirements**.lock`;
 function restoreCache(cachePrefix, version) {
@@ -82983,7 +82981,7 @@ function restoreCache(cachePrefix, version) {
         try {
             matchedKey = cacheLocalStoragePath
                 ? yield restoreCacheLocal(cacheKey)
-                : yield cache.restoreCache([exports.venvPath, exports.ryeHomePath], cacheKey);
+                : yield cache.restoreCache([exports.venvPath], cacheKey);
         }
         catch (err) {
             const message = err.message;
@@ -83024,9 +83022,6 @@ function restoreCacheLocal(primaryKey) {
             return;
         }
         yield (0, io_1.cp)(`${storedCache}/.venv`, exports.venvPath, {
-            recursive: true
-        });
-        yield (0, io_1.cp)(`${storedCache}/.rye`, exports.ryeHomePath, {
             recursive: true
         });
         return primaryKey;
@@ -83077,8 +83072,10 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.run = void 0;
 const cache = __importStar(__nccwpck_require__(7799));
 const core = __importStar(__nccwpck_require__(2186));
-const io_1 = __nccwpck_require__(7436);
+const io = __importStar(__nccwpck_require__(7436));
+const fs = __importStar(__nccwpck_require__(7147));
 const restore_cache_1 = __nccwpck_require__(744);
+const utils_1 = __nccwpck_require__(1314);
 const enableCache = core.getInput('enable-cache') === 'true';
 const cacheLocalStoragePath = `${core.getInput('cache-local-storage-path')}` || '';
 function run() {
@@ -83092,8 +83089,12 @@ function run() {
             const err = error;
             core.setFailed(err.message);
         }
-        (0, io_1.rmRF)(restore_cache_1.ryeHomePath);
-        core.info(`Cleaned up RYE_HOME: ${restore_cache_1.ryeHomePath}`);
+        const cachedPath = core.getState(utils_1.STATE_TOOL_CACHED_PATH);
+        yield io.rmRF(`${cachedPath}/${utils_1.RYE_CONFIG_TOML}`);
+        if (fs.existsSync(`${cachedPath}/${utils_1.RYE_CONFIG_TOML}`)) {
+            yield io.mv(`${cachedPath}/${utils_1.RYE_CONFIG_TOML_BACKUP}`, `${cachedPath}/${utils_1.RYE_CONFIG_TOML}`);
+            core.info(`Restored ${cachedPath}/${utils_1.RYE_CONFIG_TOML}`);
+        }
     });
 }
 exports.run = run;
@@ -83111,21 +83112,17 @@ function saveCache() {
             return;
         }
         core.info(`Saving .venv path: ${restore_cache_1.venvPath}`);
-        core.info(`Saving .rye path: ${restore_cache_1.ryeHomePath}`);
         cacheLocalStoragePath
             ? yield saveCacheLocal(cacheKey)
-            : yield cache.saveCache([restore_cache_1.venvPath, restore_cache_1.ryeHomePath], cacheKey);
+            : yield cache.saveCache([restore_cache_1.venvPath], cacheKey);
         core.info(`Cache saved with the key: ${cacheKey}`);
     });
 }
 function saveCacheLocal(cacheKey) {
     return __awaiter(this, void 0, void 0, function* () {
         const targetPath = `${cacheLocalStoragePath}/${cacheKey}`;
-        yield (0, io_1.mkdirP)(targetPath);
-        yield (0, io_1.cp)(restore_cache_1.venvPath, `${targetPath}/.venv`, {
-            recursive: true
-        });
-        yield (0, io_1.cp)(restore_cache_1.ryeHomePath, `${targetPath}/.rye`, {
+        yield io.mkdirP(targetPath);
+        yield io.cp(restore_cache_1.venvPath, `${targetPath}/.venv`, {
             recursive: true
         });
     });
@@ -83173,7 +83170,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getArch = exports.isknownVersion = exports.validateFileCheckSum = exports.compareVersions = exports.extract = exports.validateChecksum = exports.ComparisonResult = exports.VERSIONS_WHICH_MODIFY_PROFILE = exports.EARLIEST_VERSION_WITH_NO_MODIFY_PATHSUPPORT = exports.OWNER = exports.REPO = exports.WINDOWS_PLATFORMS = exports.WINDOWS_ARCHS = exports.IS_MAC = exports.IS_LINUX = exports.IS_WINDOWS = void 0;
+exports.getArch = exports.isknownVersion = exports.validateFileCheckSum = exports.compareVersions = exports.extract = exports.validateChecksum = exports.ComparisonResult = exports.VERSIONS_WHICH_MODIFY_PROFILE = exports.EARLIEST_VERSION_WITH_NO_MODIFY_PATHSUPPORT = exports.STATE_TOOL_CACHED_PATH = exports.RYE_CONFIG_TOML = exports.RYE_CONFIG_TOML_BACKUP = exports.toolsCacheName = exports.OWNER = exports.REPO = exports.WINDOWS_PLATFORMS = exports.WINDOWS_ARCHS = exports.IS_MAC = exports.IS_LINUX = exports.IS_WINDOWS = void 0;
 const fs = __importStar(__nccwpck_require__(7147));
 const crypto = __importStar(__nccwpck_require__(6113));
 const io = __importStar(__nccwpck_require__(7436));
@@ -83187,6 +83184,10 @@ exports.WINDOWS_ARCHS = ['x86', 'x64'];
 exports.WINDOWS_PLATFORMS = ['win32', 'win64'];
 exports.REPO = 'rye';
 exports.OWNER = 'astral-sh';
+exports.toolsCacheName = 'setup-rye-2024-03-04'; // Custom name for cache busting
+exports.RYE_CONFIG_TOML_BACKUP = 'config.toml.bak';
+exports.RYE_CONFIG_TOML = 'config.toml';
+exports.STATE_TOOL_CACHED_PATH = 'tool-cached-path';
 exports.EARLIEST_VERSION_WITH_NO_MODIFY_PATHSUPPORT = '0.25.0';
 exports.VERSIONS_WHICH_MODIFY_PROFILE = [
     '0.21.0',

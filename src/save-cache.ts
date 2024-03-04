@@ -1,12 +1,17 @@
 import * as cache from '@actions/cache'
 import * as core from '@actions/core'
-import {mkdirP, cp, rmRF} from '@actions/io/'
+import * as io from '@actions/io/'
+import * as fs from 'fs'
 import {
   STATE_CACHE_MATCHED_KEY,
   STATE_CACHE_KEY,
-  venvPath,
-  ryeHomePath
+  venvPath
 } from './restore-cache'
+import {
+  RYE_CONFIG_TOML,
+  RYE_CONFIG_TOML_BACKUP,
+  STATE_TOOL_CACHED_PATH
+} from './utils'
 
 const enableCache = core.getInput('enable-cache') === 'true'
 const cacheLocalStoragePath =
@@ -21,8 +26,15 @@ export async function run(): Promise<void> {
     const err = error as Error
     core.setFailed(err.message)
   }
-  rmRF(ryeHomePath)
-  core.info(`Cleaned up RYE_HOME: ${ryeHomePath}`)
+  const cachedPath = core.getState(STATE_TOOL_CACHED_PATH)
+  await io.rmRF(`${cachedPath}/${RYE_CONFIG_TOML}`)
+  if (fs.existsSync(`${cachedPath}/${RYE_CONFIG_TOML}`)) {
+    await io.mv(
+      `${cachedPath}/${RYE_CONFIG_TOML_BACKUP}`,
+      `${cachedPath}/${RYE_CONFIG_TOML}`
+    )
+    core.info(`Restored ${cachedPath}/${RYE_CONFIG_TOML}`)
+  }
 }
 
 async function saveCache(): Promise<void> {
@@ -38,21 +50,17 @@ async function saveCache(): Promise<void> {
     return
   }
   core.info(`Saving .venv path: ${venvPath}`)
-  core.info(`Saving .rye path: ${ryeHomePath}`)
   cacheLocalStoragePath
     ? await saveCacheLocal(cacheKey)
-    : await cache.saveCache([venvPath, ryeHomePath], cacheKey)
+    : await cache.saveCache([venvPath], cacheKey)
 
   core.info(`Cache saved with the key: ${cacheKey}`)
 }
 
 async function saveCacheLocal(cacheKey: string): Promise<void> {
   const targetPath = `${cacheLocalStoragePath}/${cacheKey}`
-  await mkdirP(targetPath)
-  await cp(venvPath, `${targetPath}/.venv`, {
-    recursive: true
-  })
-  await cp(ryeHomePath, `${targetPath}/.rye`, {
+  await io.mkdirP(targetPath)
+  await io.cp(venvPath, `${targetPath}/.venv`, {
     recursive: true
   })
 }
