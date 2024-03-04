@@ -1,7 +1,8 @@
 import * as fs from 'fs'
 import * as crypto from 'crypto'
-import * as exec from '@actions/exec'
+import * as io from '@actions/io'
 import * as core from '@actions/core'
+import * as exec from '@actions/exec'
 import {KNOWN_CHECKSUMS} from './checksums'
 
 export const IS_WINDOWS = process.platform === 'win32'
@@ -29,6 +30,42 @@ export enum ComparisonResult {
   Less = -1
 }
 
+export async function validateChecksum(
+  checkSum: string | undefined,
+  downloadPath: string,
+  arch: Architecture,
+  platform: string,
+  version: string
+): Promise<void> {
+  let isValid = true
+  if (checkSum !== undefined && checkSum !== '') {
+    isValid = await validateFileCheckSum(downloadPath, checkSum)
+  } else {
+    core.debug(`Checksum not provided. Checking known checksums.`)
+    const key = `${arch}-${platform}-${version}`
+    if (key in KNOWN_CHECKSUMS) {
+      const knownChecksum = KNOWN_CHECKSUMS[`${arch}-${platform}-${version}`]
+      core.debug(`Checking checksum for ${arch}-${platform}-${version}.`)
+      isValid = await validateFileCheckSum(downloadPath, knownChecksum)
+    } else {
+      core.debug(`No known checksum found for ${key}.`)
+    }
+  }
+
+  if (!isValid) {
+    throw new Error(`Checksum for ${downloadPath} did not match ${checkSum}.`)
+  }
+  core.debug(`Checksum for ${downloadPath} is valid.`)
+}
+
+export async function extract(downloadPath: string): Promise<void> {
+  core.info('Extracting downloaded archive...')
+  const pathForGunzip = `${downloadPath}.gz`
+  await io.mv(downloadPath, pathForGunzip)
+  await exec.exec('gunzip', [pathForGunzip])
+  await exec.exec('chmod', ['+x', downloadPath])
+}
+
 export function compareVersions(
   versionA: string,
   versionB: string
@@ -46,7 +83,7 @@ export function compareVersions(
   return ComparisonResult.Equal
 }
 
-export async function validateCheckSum(
+export async function validateFileCheckSum(
   filePath: string,
   expected: string
 ): Promise<boolean> {
@@ -78,32 +115,4 @@ export function getArch(): Architecture | undefined {
   if (arch in archMapping) {
     return archMapping[arch]
   }
-}
-
-export async function getMacOSInfo(): Promise<{
-  osName: string
-  osVersion: string
-}> {
-  const {stdout} = await exec.getExecOutput('sw_vers', ['-productVersion'], {
-    silent: true
-  })
-
-  const macOSVersion = stdout.trim()
-
-  return {osName: 'macOS', osVersion: macOSVersion}
-}
-
-export async function getLinuxInfo(): Promise<{
-  osName: string
-  osVersion: string
-}> {
-  const {stdout} = await exec.getExecOutput('lsb_release', ['-i', '-r', '-s'], {
-    silent: true
-  })
-
-  const [osName, osVersion] = stdout.trim().split('\n')
-
-  core.debug(`OS Name: ${osName}, Version: ${osVersion}`)
-
-  return {osName, osVersion}
 }
