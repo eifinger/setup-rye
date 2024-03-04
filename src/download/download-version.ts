@@ -1,6 +1,5 @@
 import * as core from '@actions/core'
 import * as tc from '@actions/tool-cache'
-import * as io from '@actions/io'
 import {
   Architecture,
   OWNER,
@@ -9,24 +8,15 @@ import {
   toolsCacheName,
   validateChecksum
 } from '../utils'
-import {ryeHomePath} from '../restore-cache'
 
 export function tryGetFromCache(
   arch: Architecture,
   version: string
 ): string | undefined {
-  core.debug(`Trying to get Rye from cache for ${version}...`)
+  core.debug(`Trying to get rye from tool cache for ${version}...`)
   const cachedVersions = tc.findAllVersions(toolsCacheName, arch)
   core.debug(`Cached versions: ${cachedVersions}`)
-  const foundPath = tc.find(toolsCacheName, version, arch)
-  if (foundPath) {
-    core.info(`Found Rye in cache for ${version}`)
-    io.cp(foundPath, ryeHomePath, {
-      copySourceDirectory: true,
-      recursive: true
-    })
-    return ryeHomePath
-  }
+  return tc.find(toolsCacheName, version, arch)
 }
 
 export async function downloadVersion(

@@ -4,7 +4,6 @@ import * as glob from '@actions/glob'
 import * as core from '@actions/core'
 import {cp} from '@actions/io/'
 import {exists} from '@actions/io/lib/io-util'
-import {resolve} from 'path'
 import {getArch} from './utils'
 
 export const STATE_CACHE_KEY = 'cache-key'
@@ -12,8 +11,7 @@ export const STATE_CACHE_MATCHED_KEY = 'cache-matched-key'
 export const workingDirInput = core.getInput('working-directory')
 export const workingDir = workingDirInput ? `/${workingDirInput}` : ''
 export const venvPath = `${process.env['GITHUB_WORKSPACE']}${workingDir}/.venv`
-export const ryeHomePath = resolve(`${process.env['GITHUB_WORKSPACE']}/../.rye`)
-const CACHE_VERSION = '4'
+const CACHE_VERSION = '5'
 const cacheLocalStoragePath =
   `${core.getInput('cache-local-storage-path')}` || ''
 const cacheDependencyPath = `${process.env['GITHUB_WORKSPACE']}${workingDir}/requirements**.lock`

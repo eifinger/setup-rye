@@ -3,8 +3,9 @@ import * as tc from '@actions/tool-cache'
 import * as exec from '@actions/exec'
 import * as io from '@actions/io'
 import * as path from 'path'
+import * as fs from 'fs'
 import {downloadVersion, tryGetFromCache} from './download/download-version'
-import {restoreCache, ryeHomePath} from './restore-cache'
+import {restoreCache} from './restore-cache'
 import {
   Architecture,
   EARLIEST_VERSION_WITH_NO_MODIFY_PATHSUPPORT,
@@ -15,6 +16,11 @@ import {
   toolsCacheName
 } from './utils'
 import {downloadLatest} from './download/download-latest'
+import {
+  RYE_CONFIG_TOML,
+  RYE_CONFIG_TOML_BACKUP,
+  STATE_TOOL_CACHED_PATH
+} from './utils'
 
 async function run(): Promise<void> {
   const platform = IS_MAC ? 'macos' : 'linux'
@@ -43,10 +49,17 @@ async function run(): Promise<void> {
       )
     }
     core.setOutput('rye-version', setupResult.version)
-
     addRyeToPath(setupResult.installedPath)
     addMatchers()
-
+    core.saveState(STATE_TOOL_CACHED_PATH, setupResult.installedPath)
+    await io.rmRF(`${setupResult.installedPath}/${RYE_CONFIG_TOML_BACKUP}`)
+    if (fs.existsSync(`${setupResult.installedPath}/${RYE_CONFIG_TOML}`)) {
+      await io.cp(
+        `${setupResult.installedPath}/${RYE_CONFIG_TOML}`,
+        `${setupResult.installedPath}/${RYE_CONFIG_TOML_BACKUP}`
+      )
+      core.info(`Backed up ${setupResult.installedPath}/${RYE_CONFIG_TOML}`)
+    }
     if (enableCache) {
       await restoreCache(cachePrefix, setupResult.version)
     }
@@ -94,16 +107,20 @@ async function installRye(
   arch: string,
   version: string
 ): Promise<string> {
-  await io.mkdirP(ryeHomePath)
+  const tempDir = path.join(process.env['RUNNER_TEMP'] || '', 'rye_temp_home')
+  await io.mkdirP(tempDir)
+  core.debug(`Created temporary directory ${tempDir}`)
+  // Cache first to get the correct path
+  let cachedPath = await tc.cacheDir(tempDir, toolsCacheName, version, arch)
   const options: exec.ExecOptions = {
-    cwd: ryeHomePath,
+    cwd: cachedPath,
     silent: !core.isDebug(),
     env: {
       ...process.env,
-      RYE_HOME: ryeHomePath
+      RYE_HOME: cachedPath
     }
   }
-  core.info(`Installing Rye into ${ryeHomePath}`)
+  core.info(`Installing Rye into ${cachedPath}`)
   const execArgs = ['self', 'install', '--yes']
   if (
     compareVersions(version, EARLIEST_VERSION_WITH_NO_MODIFY_PATHSUPPORT) >= 0
@@ -111,22 +128,14 @@ async function installRye(
     execArgs.push('--no-modify-path')
   }
   await exec.exec(downloadPath, execArgs, options)
-
-  const cachedPath = await tc.cacheDir(
-    ryeHomePath,
-    toolsCacheName,
-    version,
-    arch
-  )
-  core.info(`Cached Rye into ${cachedPath}`)
   return cachedPath
 }
 
 function addRyeToPath(cachedPath: string): void {
   core.addPath(`${cachedPath}/shims`)
   core.info(`Added ${cachedPath}/shims to the path`)
-  core.exportVariable('RYE_HOME', ryeHomePath)
-  core.info(`Set RYE_HOME to ${ryeHomePath}`)
+  core.exportVariable('RYE_HOME', cachedPath)
+  core.info(`Set RYE_HOME to ${cachedPath}`)
 }
 
 function addMatchers(): void {
