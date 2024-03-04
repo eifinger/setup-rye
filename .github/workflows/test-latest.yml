@@ -12,11 +12,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test-rye-sync:
+  test-latest:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, macos-14, oracle-aarch64]
+        enable-cache: [true, false]
     steps:
       - uses: actions/checkout@v4
       - name: Should not be on path
@@ -30,7 +31,9 @@ jobs:
       - name: Setup rye
         uses: ./
         with:
+          working-directory: __tests__/fixtures/rye-project
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          enable-cache: ${{ matrix.enable-cache }}
       - run: rye sync
         working-directory: __tests__/fixtures/rye-project
       - name: Rye path is not added to .profile
@@ -41,7 +44,7 @@ jobs:
           else
             exit 1
           fi
-  test-without-github-token:
+  test-latest-without-github-token:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

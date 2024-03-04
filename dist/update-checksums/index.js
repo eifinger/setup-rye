@@ -32970,11 +32970,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getLinuxInfo = exports.getMacOSInfo = exports.getArch = exports.isknownVersion = exports.validateCheckSum = exports.compareVersions = exports.ComparisonResult = exports.VERSIONS_WHICH_MODIFY_PROFILE = exports.EARLIEST_VERSION_WITH_NO_MODIFY_PATHSUPPORT = exports.OWNER = exports.REPO = exports.WINDOWS_PLATFORMS = exports.WINDOWS_ARCHS = exports.IS_MAC = exports.IS_LINUX = exports.IS_WINDOWS = void 0;
+exports.getArch = exports.isknownVersion = exports.validateFileCheckSum = exports.compareVersions = exports.extract = exports.validateChecksum = exports.ComparisonResult = exports.VERSIONS_WHICH_MODIFY_PROFILE = exports.EARLIEST_VERSION_WITH_NO_MODIFY_PATHSUPPORT = exports.OWNER = exports.REPO = exports.WINDOWS_PLATFORMS = exports.WINDOWS_ARCHS = exports.IS_MAC = exports.IS_LINUX = exports.IS_WINDOWS = void 0;
 const fs = __importStar(__nccwpck_require__(7147));
 const crypto = __importStar(__nccwpck_require__(6113));
-const exec = __importStar(__nccwpck_require__(1514));
+const io = __importStar(__nccwpck_require__(7436));
 const core = __importStar(__nccwpck_require__(2186));
+const exec = __importStar(__nccwpck_require__(1514));
 const checksums_1 = __nccwpck_require__(1541);
 exports.IS_WINDOWS = process.platform === 'win32';
 exports.IS_LINUX = process.platform === 'linux';
@@ -32996,6 +32997,41 @@ var ComparisonResult;
     ComparisonResult[ComparisonResult["Equal"] = 0] = "Equal";
     ComparisonResult[ComparisonResult["Less"] = -1] = "Less";
 })(ComparisonResult || (exports.ComparisonResult = ComparisonResult = {}));
+function validateChecksum(checkSum, downloadPath, arch, platform, version) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let isValid = true;
+        if (checkSum !== undefined && checkSum !== '') {
+            isValid = yield validateFileCheckSum(downloadPath, checkSum);
+        }
+        else {
+            core.debug(`Checksum not provided. Checking known checksums.`);
+            const key = `${arch}-${platform}-${version}`;
+            if (key in checksums_1.KNOWN_CHECKSUMS) {
+                const knownChecksum = checksums_1.KNOWN_CHECKSUMS[`${arch}-${platform}-${version}`];
+                core.debug(`Checking checksum for ${arch}-${platform}-${version}.`);
+                isValid = yield validateFileCheckSum(downloadPath, knownChecksum);
+            }
+            else {
+                core.debug(`No known checksum found for ${key}.`);
+            }
+        }
+        if (!isValid) {
+            throw new Error(`Checksum for ${downloadPath} did not match ${checkSum}.`);
+        }
+        core.debug(`Checksum for ${downloadPath} is valid.`);
+    });
+}
+exports.validateChecksum = validateChecksum;
+function extract(downloadPath) {
+    return __awaiter(this, void 0, void 0, function* () {
+        core.info('Extracting downloaded archive...');
+        const pathForGunzip = `${downloadPath}.gz`;
+        yield io.mv(downloadPath, pathForGunzip);
+        yield exec.exec('gunzip', [pathForGunzip]);
+        yield exec.exec('chmod', ['+x', downloadPath]);
+    });
+}
+exports.extract = extract;
 function compareVersions(versionA, versionB) {
     const versionPartsA = versionA.split('.').map(Number);
     const versionPartsB = versionB.split('.').map(Number);
@@ -33010,7 +33046,7 @@ function compareVersions(versionA, versionB) {
     return ComparisonResult.Equal;
 }
 exports.compareVersions = compareVersions;
-function validateCheckSum(filePath, expected) {
+function validateFileCheckSum(filePath, expected) {
     return __awaiter(this, void 0, void 0, function* () {
         return new Promise((resolve, reject) => {
             const hash = crypto.createHash('sha256');
@@ -33024,7 +33060,7 @@ function validateCheckSum(filePath, expected) {
         });
     });
 }
-exports.validateCheckSum = validateCheckSum;
+exports.validateFileCheckSum = validateFileCheckSum;
 function isknownVersion(version) {
     const pattern = new RegExp(`^.*-.*-${version}$`);
     return Object.keys(checksums_1.KNOWN_CHECKSUMS).some(key => pattern.test(key));
@@ -33042,27 +33078,6 @@ function getArch() {
     }
 }
 exports.getArch = getArch;
-function getMacOSInfo() {
-    return __awaiter(this, void 0, void 0, function* () {
-        const { stdout } = yield exec.getExecOutput('sw_vers', ['-productVersion'], {
-            silent: true
-        });
-        const macOSVersion = stdout.trim();
-        return { osName: 'macOS', osVersion: macOSVersion };
-    });
-}
-exports.getMacOSInfo = getMacOSInfo;
-function getLinuxInfo() {
-    return __awaiter(this, void 0, void 0, function* () {
-        const { stdout } = yield exec.getExecOutput('lsb_release', ['-i', '-r', '-s'], {
-            silent: true
-        });
-        const [osName, osVersion] = stdout.trim().split('\n');
-        core.debug(`OS Name: ${osName}, Version: ${osVersion}`);
-        return { osName, osVersion };
-    });
-}
-exports.getLinuxInfo = getLinuxInfo;
 
 
 /***/ }),

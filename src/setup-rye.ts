@@ -2,23 +2,18 @@ import * as core from '@actions/core'
 import * as tc from '@actions/tool-cache'
 import * as exec from '@actions/exec'
 import * as io from '@actions/io'
-import * as octokit from '@octokit/rest'
-import * as github from '@actions/github'
 import * as path from 'path'
+import {downloadVersion, tryGetFromCache} from './download/download-version'
 import {restoreCache, ryeHomePath} from './restore-cache'
 import {
   Architecture,
-  OWNER,
-  REPO,
   EARLIEST_VERSION_WITH_NO_MODIFY_PATHSUPPORT,
   VERSIONS_WHICH_MODIFY_PROFILE,
-  validateCheckSum,
   getArch,
-  isknownVersion,
   IS_MAC,
   compareVersions
 } from './utils'
-import {KNOWN_CHECKSUMS} from './checksums'
+import {downloadLatest} from './download/download-latest'
 
 async function run(): Promise<void> {
   const platform = IS_MAC ? 'macos' : 'linux'
@@ -33,32 +28,27 @@ async function run(): Promise<void> {
     if (arch === undefined) {
       throw new Error(`Unsupported architecture: ${process.arch}`)
     }
-    const version = await resolveVersion(versionInput, githubToken)
-    if (VERSIONS_WHICH_MODIFY_PROFILE.includes(version)) {
+
+    const setupResult = await setupRye(
+      platform,
+      arch,
+      versionInput,
+      checkSum,
+      githubToken
+    )
+
+    if (VERSIONS_WHICH_MODIFY_PROFILE.includes(setupResult.version)) {
       core.warning(
-        `Rye version ${version} adds a wrong path to the file ~/.profile. Consider using version ${EARLIEST_VERSION_WITH_NO_MODIFY_PATHSUPPORT} or later instead.`
+        `Rye version ${setupResult.version} adds a wrong path to the file ~/.profile. Consider using version ${EARLIEST_VERSION_WITH_NO_MODIFY_PATHSUPPORT} or later instead.`
       )
     }
-    core.setOutput('rye-version', version)
+    core.setOutput('rye-version', setupResult.version)
 
-    let cachedPath = tryGetFromCache(arch, version)
-    if (cachedPath) {
-      core.info(`Found Rye in cache for ${version}`)
-    } else {
-      cachedPath = await setupRye(
-        platform,
-        arch,
-        version,
-        checkSum,
-        githubToken
-      )
-    }
-
-    addRyeToPath(cachedPath)
+    addRyeToPath(setupResult.cachedPath)
     addMatchers()
 
     if (enableCache) {
-      await restoreCache(cachePrefix, version)
+      await restoreCache(cachePrefix, setupResult.version)
     }
     core.exportVariable('RYE_HOME', ryeHomePath)
     core.info(`Set RYE_HOME to ${ryeHomePath}`)
@@ -67,154 +57,38 @@ async function run(): Promise<void> {
   }
 }
 
-async function resolveVersion(
-  versionInput: string,
-  githubToken: string | undefined
-): Promise<string> {
-  if (isknownVersion(versionInput)) {
-    core.debug(`Version ${versionInput} is known.`)
-    return versionInput
-  }
-  const availableVersion = await getAvailableVersions(githubToken)
-  if (!availableVersion.includes(versionInput)) {
-    if (versionInput === 'latest') {
-      core.info(`Latest version is ${availableVersion[0]}`)
-      return availableVersion[0]
-    } else {
-      throw new Error(
-        `Version ${versionInput} is not available. Available version are: ${availableVersion}`
-      )
-    }
-  }
-  return versionInput
-}
-
-async function getAvailableVersions(
-  githubToken: string | undefined
-): Promise<string[]> {
-  let response
-  if (githubToken !== undefined && githubToken !== '') {
-    core.debug(`Using GitHub token to authenticate for GitHub REST API.`)
-    const githubClient = github.getOctokit(githubToken, {
-      userAgent: 'eifinger/setup-rye'
-    })
-
-    response = await githubClient.paginate(
-      githubClient.rest.repos.listReleases,
-      {
-        owner: OWNER,
-        repo: REPO
-      }
-    )
-  } else {
-    core.debug(`Using anonymous access for GitHub REST API.`)
-    const githubClient = new octokit.Octokit({
-      userAgent: 'eifinger/setup-rye'
-    })
-    const data = await githubClient.rest.repos.listReleases({
-      owner: OWNER,
-      repo: REPO
-    })
-    response = data.data
-  }
-
-  const releases = response.map(release => release.tag_name)
-  return releases
-}
-
-function tryGetFromCache(
-  arch: Architecture,
-  version: string
-): string | undefined {
-  core.debug(`Trying to get Rye from cache for ${version}...`)
-  const cachedVersions = tc.findAllVersions('rye', arch)
-  core.debug(`Cached versions: ${cachedVersions}`)
-  return tc.find('rye', version, arch)
-}
-
 async function setupRye(
   platform: string,
   arch: Architecture,
-  version: string,
+  versionInput: string,
   checkSum: string | undefined,
   githubToken: string | undefined
-): Promise<string> {
-  const downloadPath = await downloadVersion(
-    platform,
-    arch,
-    version,
-    checkSum,
-    githubToken
-  )
-  const cachedPath = await installRye(downloadPath, arch, version)
-  return cachedPath
-}
-
-async function downloadVersion(
-  platform: string,
-  arch: Architecture,
-  version: string,
-  checkSum: string | undefined,
-  githubToken: string | undefined
-): Promise<string> {
-  const binary = `rye-${arch}-${platform}`
-  const downloadUrl = `https://github.com/${OWNER}/${REPO}/releases/download/${version}/${binary}.gz`
-  core.info(`Downloading Rye from "${downloadUrl}" ...`)
-
-  try {
-    const downloadPath = await tc.downloadTool(
-      downloadUrl,
-      undefined,
+): Promise<{version: string; cachedPath: string}> {
+  let cachedPath: string | undefined
+  let downloadPath: string
+  let version: string
+  if (versionInput === 'latest') {
+    const result = await downloadLatest(platform, arch, checkSum, githubToken)
+    version = result.version
+    downloadPath = result.downloadPath
+  } else {
+    version = versionInput
+    cachedPath = tryGetFromCache(arch, versionInput)
+    if (cachedPath) {
+      core.info(`Found Rye in cache for ${versionInput}`)
+      return {version, cachedPath}
+    }
+    downloadPath = await downloadVersion(
+      platform,
+      arch,
+      versionInput,
+      checkSum,
       githubToken
     )
-    let isValid = true
-    if (checkSum !== undefined && checkSum !== '') {
-      isValid = await validateCheckSum(downloadPath, checkSum)
-    } else {
-      core.debug(`Checksum not provided. Checking known checksums.`)
-      const key = `${arch}-${platform}-${version}`
-      if (key in KNOWN_CHECKSUMS) {
-        const knownChecksum = KNOWN_CHECKSUMS[`${arch}-${platform}-${version}`]
-        isValid = await validateCheckSum(downloadPath, knownChecksum)
-      } else {
-        core.debug(`No known checksum found for ${key}.`)
-      }
-    }
-
-    if (!isValid) {
-      throw new Error(`Checksum for ${downloadPath} did not match ${checkSum}.`)
-    }
-    core.debug(`Checksum for ${downloadPath} is valid.`)
-
-    await extract(downloadPath)
-    return downloadPath
-  } catch (err) {
-    if (err instanceof Error) {
-      // Rate limit?
-      if (
-        err instanceof tc.HTTPError &&
-        (err.httpStatusCode === 403 || err.httpStatusCode === 429)
-      ) {
-        core.info(
-          `Received HTTP status code ${err.httpStatusCode}.  This usually indicates the rate limit has been exceeded`
-        )
-      } else {
-        core.info(err.message)
-      }
-      if (err.stack !== undefined) {
-        core.debug(err.stack)
-      }
-    }
-    throw err
   }
-}
 
-async function extract(downloadPath: string): Promise<void> {
-  core.info('Extracting downloaded archive...')
-  const pathForGunzip = `${downloadPath}.gz`
-  await io.mv(downloadPath, pathForGunzip)
-  await exec.exec('gunzip', [pathForGunzip])
-  await exec.exec('chmod', ['+x', downloadPath])
+  cachedPath = await installRye(downloadPath, arch, version)
+  return {version, cachedPath}
 }
 
 async function installRye(
