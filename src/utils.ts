@@ -14,6 +14,8 @@ export const WINDOWS_PLATFORMS = ['win32', 'win64']
 export const REPO = 'rye'
 export const OWNER = 'astral-sh'
 
+export const toolsCacheName = 'rye-2'
+
 export const EARLIEST_VERSION_WITH_NO_MODIFY_PATHSUPPORT = '0.25.0'
 export const VERSIONS_WHICH_MODIFY_PROFILE = [
   '0.21.0',

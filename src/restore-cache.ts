@@ -13,7 +13,7 @@ export const workingDirInput = core.getInput('working-directory')
 export const workingDir = workingDirInput ? `/${workingDirInput}` : ''
 export const venvPath = `${process.env['GITHUB_WORKSPACE']}${workingDir}/.venv`
 export const ryeHomePath = resolve(`${process.env['GITHUB_WORKSPACE']}/../.rye`)
-const CACHE_VERSION = '3'
+const CACHE_VERSION = '4'
 const cacheLocalStoragePath =
   `${core.getInput('cache-local-storage-path')}` || ''
 const cacheDependencyPath = `${process.env['GITHUB_WORKSPACE']}${workingDir}/requirements**.lock`
@@ -33,7 +33,7 @@ export async function restoreCache(
   try {
     matchedKey = cacheLocalStoragePath
       ? await restoreCacheLocal(cacheKey)
-      : await cache.restoreCache([venvPath, ryeHomePath], cacheKey)
+      : await cache.restoreCache([venvPath], cacheKey)
   } catch (err) {
     const message = (err as Error).message
     core.warning(message)
@@ -80,9 +80,6 @@ async function restoreCacheLocal(
     return
   }
   await cp(`${storedCache}/.venv`, venvPath, {
-    recursive: true
-  })
-  await cp(`${storedCache}/.rye`, ryeHomePath, {
     recursive: true
   })
   return primaryKey

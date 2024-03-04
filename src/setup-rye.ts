@@ -11,7 +11,8 @@ import {
   VERSIONS_WHICH_MODIFY_PROFILE,
   getArch,
   IS_MAC,
-  compareVersions
+  compareVersions,
+  toolsCacheName
 } from './utils'
 import {downloadLatest} from './download/download-latest'
 
@@ -28,7 +29,6 @@ async function run(): Promise<void> {
     if (arch === undefined) {
       throw new Error(`Unsupported architecture: ${process.arch}`)
     }
-
     const setupResult = await setupRye(
       platform,
       arch,
@@ -44,14 +44,12 @@ async function run(): Promise<void> {
     }
     core.setOutput('rye-version', setupResult.version)
 
-    addRyeToPath(setupResult.cachedPath)
+    addRyeToPath(setupResult.installedPath)
     addMatchers()
 
     if (enableCache) {
       await restoreCache(cachePrefix, setupResult.version)
     }
-    core.exportVariable('RYE_HOME', ryeHomePath)
-    core.info(`Set RYE_HOME to ${ryeHomePath}`)
   } catch (err) {
     core.setFailed((err as Error).message)
   }
@@ -63,8 +61,8 @@ async function setupRye(
   versionInput: string,
   checkSum: string | undefined,
   githubToken: string | undefined
-): Promise<{version: string; cachedPath: string}> {
-  let cachedPath: string | undefined
+): Promise<{version: string; installedPath: string}> {
+  let installedPath: string | undefined
   let downloadPath: string
   let version: string
   if (versionInput === 'latest') {
@@ -73,10 +71,10 @@ async function setupRye(
     downloadPath = result.downloadPath
   } else {
     version = versionInput
-    cachedPath = tryGetFromCache(arch, versionInput)
-    if (cachedPath) {
+    installedPath = tryGetFromCache(arch, versionInput)
+    if (installedPath) {
       core.info(`Found Rye in cache for ${versionInput}`)
-      return {version, cachedPath}
+      return {version, installedPath}
     }
     downloadPath = await downloadVersion(
       platform,
@@ -87,8 +85,8 @@ async function setupRye(
     )
   }
 
-  cachedPath = await installRye(downloadPath, arch, version)
-  return {version, cachedPath}
+  installedPath = await installRye(downloadPath, arch, version)
+  return {version, installedPath}
 }
 
 async function installRye(
@@ -96,18 +94,16 @@ async function installRye(
   arch: string,
   version: string
 ): Promise<string> {
-  const tempDir = path.join(process.env['RUNNER_TEMP'] || '', 'rye_temp_home')
-  await io.mkdirP(tempDir)
-  core.debug(`Created temporary directory ${tempDir}`)
+  await io.mkdirP(ryeHomePath)
   const options: exec.ExecOptions = {
-    cwd: tempDir,
+    cwd: ryeHomePath,
     silent: !core.isDebug(),
     env: {
       ...process.env,
-      RYE_HOME: tempDir
+      RYE_HOME: ryeHomePath
     }
   }
-  core.info(`Installing Rye into ${tempDir}`)
+  core.info(`Installing Rye into ${ryeHomePath}`)
   const execArgs = ['self', 'install', '--yes']
   if (
     compareVersions(version, EARLIEST_VERSION_WITH_NO_MODIFY_PATHSUPPORT) >= 0
@@ -116,14 +112,21 @@ async function installRye(
   }
   await exec.exec(downloadPath, execArgs, options)
 
-  const cachedPath = await tc.cacheDir(tempDir, 'rye', version, arch)
-  core.info(`Moved Rye into ${cachedPath}`)
+  const cachedPath = await tc.cacheDir(
+    ryeHomePath,
+    toolsCacheName,
+    version,
+    arch
+  )
+  core.info(`Cached Rye into ${cachedPath}`)
   return cachedPath
 }
 
 function addRyeToPath(cachedPath: string): void {
   core.addPath(`${cachedPath}/shims`)
   core.info(`Added ${cachedPath}/shims to the path`)
+  core.exportVariable('RYE_HOME', ryeHomePath)
+  core.info(`Set RYE_HOME to ${ryeHomePath}`)
 }
 
 function addMatchers(): void {

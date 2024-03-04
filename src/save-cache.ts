@@ -38,10 +38,9 @@ async function saveCache(): Promise<void> {
     return
   }
   core.info(`Saving .venv path: ${venvPath}`)
-  core.info(`Saving .rye path: ${ryeHomePath}`)
   cacheLocalStoragePath
     ? await saveCacheLocal(cacheKey)
-    : await cache.saveCache([venvPath, ryeHomePath], cacheKey)
+    : await cache.saveCache([venvPath], cacheKey)
 
   core.info(`Cache saved with the key: ${cacheKey}`)
 }
@@ -50,9 +49,6 @@ async function saveCacheLocal(cacheKey: string): Promise<void> {
   const targetPath = `${cacheLocalStoragePath}/${cacheKey}`
   await mkdirP(targetPath)
   await cp(venvPath, `${targetPath}/.venv`, {
-    recursive: true
-  })
-  await cp(ryeHomePath, `${targetPath}/.rye`, {
     recursive: true
   })
 }
