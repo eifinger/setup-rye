@@ -99,7 +99,7 @@ It is recommended to cleanup the storage path to avoid running out of disk space
 One option is to use a cron job to delete files older than 7 days like below.
 
 ```yaml
-0 0 * * * find /home/ubuntu/setup-rye-cache -type f -mtime +7 -exec rm -rf {} \;
+0 0 * * * find /home/ubuntu/setup-rye-cache -type d -mtime +7 -exec rm -rf {} \;
 ```
 
 ### API rate limit
