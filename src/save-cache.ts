@@ -28,7 +28,7 @@ export async function run(): Promise<void> {
   }
   const cachedPath = core.getState(STATE_TOOL_CACHED_PATH)
   await io.rmRF(`${cachedPath}/${RYE_CONFIG_TOML}`)
-  if (fs.existsSync(`${cachedPath}/${RYE_CONFIG_TOML}`)) {
+  if (fs.existsSync(`${cachedPath}/${RYE_CONFIG_TOML_BACKUP}`)) {
     await io.mv(
       `${cachedPath}/${RYE_CONFIG_TOML_BACKUP}`,
       `${cachedPath}/${RYE_CONFIG_TOML}`
