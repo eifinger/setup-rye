@@ -83121,7 +83121,7 @@ function run() {
         }
         const cachedPath = core.getState(utils_1.STATE_TOOL_CACHED_PATH);
         yield io.rmRF(`${cachedPath}/${utils_1.RYE_CONFIG_TOML}`);
-        if (fs.existsSync(`${cachedPath}/${utils_1.RYE_CONFIG_TOML}`)) {
+        if (fs.existsSync(`${cachedPath}/${utils_1.RYE_CONFIG_TOML_BACKUP}`)) {
             yield io.mv(`${cachedPath}/${utils_1.RYE_CONFIG_TOML_BACKUP}`, `${cachedPath}/${utils_1.RYE_CONFIG_TOML}`);
             core.info(`Restored ${cachedPath}/${utils_1.RYE_CONFIG_TOML}`);
         }
