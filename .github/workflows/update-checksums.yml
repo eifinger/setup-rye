@@ -15,7 +15,7 @@ jobs:
       - run: node dist/update-checksums/index.js src/checksums.ts ${{ secrets.GITHUB_TOKEN }}
       - run: npm install && npm run all
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@70a41aba780001da0a30141984ae2a0c95d8704e  # v6.0.2
+        uses: peter-evans/create-pull-request@c55203cfde3e5c11a452d352b4393e68b85b4533  # v6.0.3
         with:
             commit-message: "chore: update checksums"
             title: "chore: update checksums"
