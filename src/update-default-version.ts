@@ -1,11 +1,15 @@
 import * as github from '@actions/github'
+import * as core from '@actions/core'
 import * as tc from '@actions/tool-cache'
 import {OWNER, REPO} from './utils'
-import {promises as fs} from 'fs'
+import {createReadStream, promises as fs} from 'fs'
+import * as readline from 'readline'
+import * as semver from 'semver'
 
 async function run(): Promise<void> {
-  const filePath = process.argv.slice(2)[0]
-  const github_token = process.argv.slice(2)[1]
+  const checksumFilePath = process.argv.slice(2)[0]
+  const defaultVersionFilePath = process.argv.slice(2)[1]
+  const github_token = process.argv.slice(2)[2]
 
   const octokit = github.getOctokit(github_token)
 
@@ -18,7 +22,13 @@ async function run(): Promise<void> {
       .filter(asset => asset.name.endsWith('.sha256'))
       .map(asset => asset.browser_download_url)
   )
-  await updateChecksums(filePath, downloadUrls)
+  await updateChecksums(checksumFilePath, downloadUrls)
+
+  const latestVersion = response
+    .map(release => release.tag_name)
+    .sort(semver.rcompare)[0]
+  core.setOutput('latest-version', latestVersion)
+  await updateDefaultVersion(defaultVersionFilePath, latestVersion)
 }
 
 async function updateChecksums(
@@ -41,6 +51,35 @@ async function updateChecksums(
     firstLine = false
   }
   await fs.appendFile(filePath, '}\n')
+}
+
+async function updateDefaultVersion(
+  filePath: string,
+  latestVersion: string
+): Promise<void> {
+  const fileStream = createReadStream(filePath)
+
+  const rl = readline.createInterface({
+    input: fileStream
+  })
+
+  let foundDescription = false
+  let lines = []
+
+  for await (let line of rl) {
+    if (
+      !foundDescription &&
+      line.includes("description: 'The version of rye to install'")
+    ) {
+      foundDescription = true
+    } else if (foundDescription && line.includes('default: ')) {
+      line = line.replace(/'[^']*'/, `'${latestVersion}'`)
+      foundDescription = false
+    }
+    lines.push(line)
+  }
+
+  await fs.writeFile(filePath, lines.join('\n'))
 }
 
 function getKey(downloadUrl: string): string {

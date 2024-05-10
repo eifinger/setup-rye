@@ -17,6 +17,24 @@ Example workflow can be found [in this repo](https://github.com/eifinger/pywaze/
   uses: eifinger/setup-rye@v2
 ```
 
+### Install latest version
+
+By default this action installs the version defined as `default` in `action.yml`.
+This gets automatically updated in a new release of this action when a new version of rye is released.
+If you don't want to wait for a new release of this action you can use use `version: latest`.
+
+> [!WARNING]  
+> Using the `latest` version means that the rye executable gets downloaded every single time instead of loaded from the tools cache.
+> This can take up to 20s depending on the download speed.
+> This does not affect the cached version of `.venv` when caching is enabled.
+
+```yaml
+- name: Install a specific version
+  uses: eifinger/setup-rye@v2
+  with:
+    version: 'latest'
+```
+
 ### Install specific version
 
 You can also specify a specific version of rye

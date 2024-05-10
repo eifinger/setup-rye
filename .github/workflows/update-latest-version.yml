@@ -12,14 +12,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - run: node dist/update-checksums/index.js src/checksums.ts ${{ secrets.GITHUB_TOKEN }}
+      - name: Update default version and checksums
+        id: update-default-version
+        run: node dist/update-default-version/index.js src/checksums.ts action.yml ${{ secrets.GITHUB_TOKEN }}
       - run: npm install && npm run all
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@70a41aba780001da0a30141984ae2a0c95d8704e  # v6.0.2
         with:
             commit-message: "chore: update checksums"
-            title: "chore: update checksums"
-            body: "chore: update checksums"
+            title: "chore: update default version to ${{ steps.update-default-version.outputs.latest-version }}"
+            body: "chore: update default version to ${{ steps.update-default-version.outputs.latest-version }}"
             base: main
             labels: automated-pr
             branch: update-checksums-pr
