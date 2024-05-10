@@ -1,6 +1,6 @@
 {
   "name": "setup-rye",
-  "version": "1.11.0",
+  "version": "3.0.1",
   "private": true,
   "description": "TypeScript template action",
   "main": "dist/index.js",
