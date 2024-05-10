@@ -24,6 +24,19 @@ jobs:
           npm install
       - run: |
           npm run all
+  test-default-version:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, oracle-aarch64]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install default version
+        uses: ./
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - run: |
+          which rye
   test-specific-version:
     runs-on: ${{ matrix.os }}
     strategy:
