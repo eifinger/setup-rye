@@ -84066,6 +84066,7 @@ function restoreCache(cachePrefix, version) {
             throw new Error(`No file in ${process.cwd()} matched to [${cacheDependencyPath}], make sure you have checked out the target repository`);
         }
         let matchedKey;
+        core.info(`Trying to restore cache with key: ${cacheKey}`);
         try {
             matchedKey = cacheLocalStoragePath
                 ? yield restoreCacheLocal(cacheKey)
@@ -84096,11 +84097,12 @@ function handleMatchResult(matchedKey, primaryKey) {
     if (matchedKey) {
         core.saveState(exports.STATE_CACHE_MATCHED_KEY, matchedKey);
         core.info(`Cache restored from key: ${matchedKey}`);
+        core.setOutput('cache-hit', true);
     }
     else {
         core.info(`No cache found for key: ${primaryKey}`);
+        core.setOutput('cache-hit', false);
     }
-    core.setOutput('cache-hit', matchedKey === primaryKey);
 }
 function restoreCacheLocal(primaryKey) {
     return __awaiter(this, void 0, void 0, function* () {
