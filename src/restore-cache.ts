@@ -28,6 +28,7 @@ export async function restoreCache(
   }
 
   let matchedKey: string | undefined
+  core.info(`Trying to restore cache with key: ${cacheKey}`)
   try {
     matchedKey = cacheLocalStoragePath
       ? await restoreCacheLocal(cacheKey)
@@ -63,10 +64,11 @@ function handleMatchResult(
   if (matchedKey) {
     core.saveState(STATE_CACHE_MATCHED_KEY, matchedKey)
     core.info(`Cache restored from key: ${matchedKey}`)
+    core.setOutput('cache-hit', true)
   } else {
     core.info(`No cache found for key: ${primaryKey}`)
+    core.setOutput('cache-hit', false)
   }
-  core.setOutput('cache-hit', matchedKey === primaryKey)
 }
 
 async function restoreCacheLocal(
