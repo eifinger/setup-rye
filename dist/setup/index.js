@@ -84196,18 +84196,10 @@ function run() {
                 throw new Error(`Unsupported architecture: ${process.arch}`);
             }
             const setupResult = yield setupRye(platform, arch, versionInput, checkSum, githubToken);
-            if (utils_1.VERSIONS_WHICH_MODIFY_PROFILE.includes(setupResult.version)) {
-                core.warning(`Rye version ${setupResult.version} adds a wrong path to the file ~/.profile. Consider using version ${utils_1.EARLIEST_VERSION_WITH_NO_MODIFY_PATHSUPPORT} or later instead.`);
-            }
-            core.setOutput('rye-version', setupResult.version);
+            setVersion(setupResult.version);
             addRyeToPath(setupResult.installedPath);
             addMatchers();
-            core.saveState(utils_2.STATE_TOOL_CACHED_PATH, setupResult.installedPath);
-            yield io.rmRF(`${setupResult.installedPath}/${utils_2.RYE_CONFIG_TOML_BACKUP}`);
-            if (fs.existsSync(`${setupResult.installedPath}/${utils_2.RYE_CONFIG_TOML}`)) {
-                yield io.cp(`${setupResult.installedPath}/${utils_2.RYE_CONFIG_TOML}`, `${setupResult.installedPath}/${utils_2.RYE_CONFIG_TOML_BACKUP}`);
-                core.info(`Backed up ${setupResult.installedPath}/${utils_2.RYE_CONFIG_TOML}`);
-            }
+            yield ensureCleanConfig(setupResult.installedPath);
             if (enableCache) {
                 yield (0, restore_cache_1.restoreCache)(cachePrefix, setupResult.version);
             }
@@ -84232,11 +84224,13 @@ function setupRye(platform, arch, versionInput, checkSum, githubToken) {
             installedPath = (0, download_version_1.tryGetFromCache)(arch, versionInput);
             if (installedPath) {
                 core.info(`Found Rye in tools-cache for ${versionInput}`);
+                yield createConfigBackup(installedPath);
                 return { version, installedPath };
             }
             downloadPath = yield (0, download_version_1.downloadVersion)(platform, arch, versionInput, checkSum, githubToken);
         }
         installedPath = yield installRye(downloadPath, arch, version);
+        yield createConfigBackup(installedPath);
         return { version, installedPath };
     });
 }
@@ -84260,6 +84254,29 @@ function installRye(downloadPath, arch, version) {
         yield exec.exec(downloadPath, execArgs, options);
         return cachedPath;
     });
+}
+function createConfigBackup(installedPath) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (fs.existsSync(`${installedPath}/${utils_2.RYE_CONFIG_TOML}`)) {
+            yield io.cp(`${installedPath}/${utils_2.RYE_CONFIG_TOML}`, `${installedPath}/${utils_2.RYE_CONFIG_TOML_BACKUP}`);
+            core.info(`Backed up ${installedPath}/${utils_2.RYE_CONFIG_TOML}`);
+        }
+    });
+}
+function ensureCleanConfig(installedPath) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (fs.existsSync(`${installedPath}/${utils_2.RYE_CONFIG_TOML_BACKUP}`)) {
+            yield io.rmRF(`${installedPath}/${utils_2.RYE_CONFIG_TOML}`);
+            yield io.cp(`${installedPath}/${utils_2.RYE_CONFIG_TOML_BACKUP}`, `${installedPath}/${utils_2.RYE_CONFIG_TOML}`);
+            core.info(`Restored clean ${utils_2.RYE_CONFIG_TOML} from ${installedPath}/${utils_2.RYE_CONFIG_TOML_BACKUP}`);
+        }
+    });
+}
+function setVersion(version) {
+    if (utils_1.VERSIONS_WHICH_MODIFY_PROFILE.includes(version)) {
+        core.warning(`Rye version ${version} adds a wrong path to the file ~/.profile. Consider using version ${utils_1.EARLIEST_VERSION_WITH_NO_MODIFY_PATHSUPPORT} or later instead.`);
+    }
+    core.setOutput('rye-version', version);
 }
 function addRyeToPath(cachedPath) {
     core.addPath(`${cachedPath}/shims`);
@@ -84314,7 +84331,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getArch = exports.isknownVersion = exports.validateFileCheckSum = exports.compareVersions = exports.extract = exports.validateChecksum = exports.ComparisonResult = exports.VERSIONS_WHICH_MODIFY_PROFILE = exports.EARLIEST_VERSION_WITH_NO_MODIFY_PATHSUPPORT = exports.STATE_TOOL_CACHED_PATH = exports.RYE_CONFIG_TOML = exports.RYE_CONFIG_TOML_BACKUP = exports.toolsCacheName = exports.OWNER = exports.REPO = exports.WINDOWS_PLATFORMS = exports.WINDOWS_ARCHS = exports.IS_MAC = exports.IS_LINUX = exports.IS_WINDOWS = void 0;
+exports.getArch = exports.isknownVersion = exports.validateFileCheckSum = exports.compareVersions = exports.extract = exports.validateChecksum = exports.ComparisonResult = exports.VERSIONS_WHICH_MODIFY_PROFILE = exports.EARLIEST_VERSION_WITH_NO_MODIFY_PATHSUPPORT = exports.RYE_CONFIG_TOML = exports.RYE_CONFIG_TOML_BACKUP = exports.toolsCacheName = exports.OWNER = exports.REPO = exports.WINDOWS_PLATFORMS = exports.WINDOWS_ARCHS = exports.IS_MAC = exports.IS_LINUX = exports.IS_WINDOWS = void 0;
 const fs = __importStar(__nccwpck_require__(7147));
 const crypto = __importStar(__nccwpck_require__(6113));
 const io = __importStar(__nccwpck_require__(7436));
@@ -84331,7 +84348,6 @@ exports.OWNER = 'astral-sh';
 exports.toolsCacheName = 'setup-rye-2024-03-04'; // Custom name for cache busting
 exports.RYE_CONFIG_TOML_BACKUP = 'config.toml.bak';
 exports.RYE_CONFIG_TOML = 'config.toml';
-exports.STATE_TOOL_CACHED_PATH = 'tool-cached-path';
 exports.EARLIEST_VERSION_WITH_NO_MODIFY_PATHSUPPORT = '0.25.0';
 exports.VERSIONS_WHICH_MODIFY_PROFILE = [
     '0.21.0',

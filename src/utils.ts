@@ -17,7 +17,6 @@ export const OWNER = 'astral-sh'
 export const toolsCacheName = 'setup-rye-2024-03-04' // Custom name for cache busting
 export const RYE_CONFIG_TOML_BACKUP = 'config.toml.bak'
 export const RYE_CONFIG_TOML = 'config.toml'
-export const STATE_TOOL_CACHED_PATH = 'tool-cached-path'
 
 export const EARLIEST_VERSION_WITH_NO_MODIFY_PATHSUPPORT = '0.25.0'
 export const VERSIONS_WHICH_MODIFY_PROFILE = [
