@@ -84135,14 +84135,12 @@ function overwriteCachedVenvPath() {
 function restoreCacheLocal(primaryKey) {
     return __awaiter(this, void 0, void 0, function* () {
         const storedCache = `${cacheLocalStoragePath}/${primaryKey}`;
-        if (!(yield (0, io_util_1.exists)(storedCache))) {
-            core.info(`Local cache is not found: ${storedCache}`);
-            return;
+        if (yield (0, io_util_1.exists)(storedCache)) {
+            yield (0, io_1.cp)(`${storedCache}/.venv`, exports.venvPath, {
+                recursive: true
+            });
+            return primaryKey;
         }
-        yield (0, io_1.cp)(`${storedCache}/.venv`, exports.venvPath, {
-            recursive: true
-        });
-        return primaryKey;
     });
 }
 
