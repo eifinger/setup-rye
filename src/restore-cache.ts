@@ -96,12 +96,10 @@ async function restoreCacheLocal(
   primaryKey: string
 ): Promise<string | undefined> {
   const storedCache = `${cacheLocalStoragePath}/${primaryKey}`
-  if (!(await exists(storedCache))) {
-    core.info(`Local cache is not found: ${storedCache}`)
-    return
+  if (await exists(storedCache)) {
+    await cp(`${storedCache}/.venv`, venvPath, {
+      recursive: true
+    })
+    return primaryKey
   }
-  await cp(`${storedCache}/.venv`, venvPath, {
-    recursive: true
-  })
-  return primaryKey
 }
