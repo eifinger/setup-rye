@@ -71,7 +71,6 @@ async function setupRye(
     installedPath = tryGetFromCache(arch, versionInput)
     if (installedPath) {
       core.info(`Found Rye in tools-cache for ${versionInput}`)
-      await createConfigBackup(installedPath)
       return {version, installedPath}
     }
     downloadPath = await downloadVersion(
