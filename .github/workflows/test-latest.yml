@@ -55,15 +55,3 @@ jobs:
           version: latest
       - run: rye sync
         working-directory: __tests__/fixtures/rye-project
-  test-latest-with-uv:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup rye
-        uses: ./
-        with:
-          version: latest
-      - run: |
-          rye config --set-bool behavior.use-uv=true
-          rye sync
-        working-directory: __tests__/fixtures/rye-project
