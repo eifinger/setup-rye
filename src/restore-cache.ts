@@ -28,7 +28,7 @@ export async function restoreCache(
   }
 
   let matchedKey: string | undefined
-  core.info(`Trying to restore cache with key: ${cacheKey}`)
+  core.info(`Trying to restore .venv from cache with key: ${cacheKey}`)
   try {
     matchedKey = cacheLocalStoragePath
       ? await restoreCacheLocal(cacheKey)
@@ -63,10 +63,14 @@ function handleMatchResult(
 ): void {
   if (matchedKey) {
     core.saveState(STATE_CACHE_MATCHED_KEY, matchedKey)
-    core.info(`Cache restored from key: ${matchedKey}`)
+    core.info(
+      `.venv restored from${cacheLocalStoragePath ? ' local' : ''} cache with key: ${matchedKey}`
+    )
     core.setOutput('cache-hit', true)
   } else {
-    core.info(`No cache found for key: ${primaryKey}`)
+    core.info(
+      `No${cacheLocalStoragePath ? ' local' : ''} cache found for key: ${primaryKey}`
+    )
     core.setOutput('cache-hit', false)
   }
 }

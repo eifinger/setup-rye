@@ -86,7 +86,7 @@ async function setupRye(
     version = versionInput
     installedPath = tryGetFromCache(arch, versionInput)
     if (installedPath) {
-      core.info(`Found Rye in cache for ${versionInput}`)
+      core.info(`Found Rye in tools-cache for ${versionInput}`)
       return {version, installedPath}
     }
     downloadPath = await downloadVersion(
