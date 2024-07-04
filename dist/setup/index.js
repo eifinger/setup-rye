@@ -84240,7 +84240,6 @@ function setupRye(platform, arch, versionInput, checkSum, githubToken) {
             installedPath = (0, download_version_1.tryGetFromCache)(arch, versionInput);
             if (installedPath) {
                 core.info(`Found Rye in tools-cache for ${versionInput}`);
-                yield createConfigBackup(installedPath);
                 return { version, installedPath };
             }
             downloadPath = yield (0, download_version_1.downloadVersion)(platform, arch, versionInput, checkSum, githubToken);
