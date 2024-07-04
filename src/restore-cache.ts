@@ -2,6 +2,7 @@ import * as crypto from 'crypto'
 import * as cache from '@actions/cache'
 import * as glob from '@actions/glob'
 import * as core from '@actions/core'
+import * as fs from 'fs'
 import {cp} from '@actions/io/'
 import {exists} from '@actions/io/lib/io-util'
 import {getArch} from './utils'
@@ -66,6 +67,7 @@ function handleMatchResult(
     core.info(
       `.venv restored from${cacheLocalStoragePath ? ' local' : ''} cache with key: ${matchedKey}`
     )
+    overwriteCachedVenvPath()
     core.setOutput('cache-hit', true)
   } else {
     core.info(
@@ -73,6 +75,21 @@ function handleMatchResult(
     )
     core.setOutput('cache-hit', false)
   }
+}
+
+/**
+ * Overwrite the cached venv path in rye-venv.json
+ *
+ * Rye prevents unwanted behavior if people copy around .venv between projects.
+ * But we can be sure, that we are always working with the same project but the base path of previous runners might be different.
+ */
+function overwriteCachedVenvPath(): void {
+  const ryeVenvPath = `${venvPath}/rye-venv.json`
+  let ryeVenv = JSON.parse(fs.readFileSync(ryeVenvPath, 'utf8'))
+  core.debug(`venv_path in cache: ${ryeVenv.venv_path}`)
+  core.debug(`Overwriting cached venv_path with ${venvPath}`)
+  ryeVenv.venv_path = venvPath
+  fs.writeFileSync(ryeVenvPath, JSON.stringify(ryeVenv))
 }
 
 async function restoreCacheLocal(
