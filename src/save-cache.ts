@@ -42,11 +42,11 @@ async function saveCache(): Promise<void> {
   const matchedKey = core.getState(STATE_CACHE_MATCHED_KEY)
 
   if (!cacheKey) {
-    core.warning('Error retrieving key from state.')
+    core.warning('Error retrieving cache key from state.')
     return
   } else if (matchedKey === cacheKey) {
     // no change in target directories
-    core.info(`Cache hit occurred on key ${cacheKey}, not saving cache.`)
+    core.info(`Cache hit occurred on key ${cacheKey}, not saving .venv.`)
     return
   }
   core.info(`Saving .venv path: ${venvPath}`)
@@ -54,7 +54,7 @@ async function saveCache(): Promise<void> {
     ? await saveCacheLocal(cacheKey)
     : await cache.saveCache([venvPath], cacheKey)
 
-  core.info(`Cache saved with the key: ${cacheKey}`)
+  core.info(`.venv saved with the key: ${cacheKey}`)
 }
 
 async function saveCacheLocal(cacheKey: string): Promise<void> {

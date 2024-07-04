@@ -84078,7 +84078,7 @@ function restoreCache(cachePrefix, version) {
             throw new Error(`No file in ${process.cwd()} matched to [${cacheDependencyPath}], make sure you have checked out the target repository`);
         }
         let matchedKey;
-        core.info(`Trying to restore cache with key: ${cacheKey}`);
+        core.info(`Trying to restore .venv from cache with key: ${cacheKey}`);
         try {
             matchedKey = cacheLocalStoragePath
                 ? yield restoreCacheLocal(cacheKey)
@@ -84108,11 +84108,11 @@ function computeKeys(cachePrefix, version) {
 function handleMatchResult(matchedKey, primaryKey) {
     if (matchedKey) {
         core.saveState(exports.STATE_CACHE_MATCHED_KEY, matchedKey);
-        core.info(`Cache restored from key: ${matchedKey}`);
+        core.info(`.venv restored from${cacheLocalStoragePath ? ' local' : ''} cache with key: ${matchedKey}`);
         core.setOutput('cache-hit', true);
     }
     else {
-        core.info(`No cache found for key: ${primaryKey}`);
+        core.info(`No${cacheLocalStoragePath ? ' local' : ''} cache found for key: ${primaryKey}`);
         core.setOutput('cache-hit', false);
     }
 }
@@ -84231,7 +84231,7 @@ function setupRye(platform, arch, versionInput, checkSum, githubToken) {
             version = versionInput;
             installedPath = (0, download_version_1.tryGetFromCache)(arch, versionInput);
             if (installedPath) {
-                core.info(`Found Rye in cache for ${versionInput}`);
+                core.info(`Found Rye in tools-cache for ${versionInput}`);
                 return { version, installedPath };
             }
             downloadPath = yield (0, download_version_1.downloadVersion)(platform, arch, versionInput, checkSum, githubToken);

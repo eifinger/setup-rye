@@ -83026,7 +83026,7 @@ function restoreCache(cachePrefix, version) {
             throw new Error(`No file in ${process.cwd()} matched to [${cacheDependencyPath}], make sure you have checked out the target repository`);
         }
         let matchedKey;
-        core.info(`Trying to restore cache with key: ${cacheKey}`);
+        core.info(`Trying to restore .venv from cache with key: ${cacheKey}`);
         try {
             matchedKey = cacheLocalStoragePath
                 ? yield restoreCacheLocal(cacheKey)
@@ -83056,11 +83056,11 @@ function computeKeys(cachePrefix, version) {
 function handleMatchResult(matchedKey, primaryKey) {
     if (matchedKey) {
         core.saveState(exports.STATE_CACHE_MATCHED_KEY, matchedKey);
-        core.info(`Cache restored from key: ${matchedKey}`);
+        core.info(`.venv restored from${cacheLocalStoragePath ? ' local' : ''} cache with key: ${matchedKey}`);
         core.setOutput('cache-hit', true);
     }
     else {
-        core.info(`No cache found for key: ${primaryKey}`);
+        core.info(`No${cacheLocalStoragePath ? ' local' : ''} cache found for key: ${primaryKey}`);
         core.setOutput('cache-hit', false);
     }
 }
@@ -83153,19 +83153,19 @@ function saveCache() {
         const cacheKey = core.getState(restore_cache_1.STATE_CACHE_KEY);
         const matchedKey = core.getState(restore_cache_1.STATE_CACHE_MATCHED_KEY);
         if (!cacheKey) {
-            core.warning('Error retrieving key from state.');
+            core.warning('Error retrieving cache key from state.');
             return;
         }
         else if (matchedKey === cacheKey) {
             // no change in target directories
-            core.info(`Cache hit occurred on key ${cacheKey}, not saving cache.`);
+            core.info(`Cache hit occurred on key ${cacheKey}, not saving .venv.`);
             return;
         }
         core.info(`Saving .venv path: ${restore_cache_1.venvPath}`);
         cacheLocalStoragePath
             ? yield saveCacheLocal(cacheKey)
             : yield cache.saveCache([restore_cache_1.venvPath], cacheKey);
-        core.info(`Cache saved with the key: ${cacheKey}`);
+        core.info(`.venv saved with the key: ${cacheKey}`);
     });
 }
 function saveCacheLocal(cacheKey) {
