@@ -32,6 +32,7 @@ runs:
   using: 'node20'
   main: 'dist/setup/index.js'
   post: 'dist/save-cache/index.js'
+  post-if: success()
 branding:
   icon: 'package'
   color: 'blue'

@@ -7,11 +7,6 @@ import {
   STATE_CACHE_KEY,
   venvPath
 } from './restore-cache'
-import {
-  RYE_CONFIG_TOML,
-  RYE_CONFIG_TOML_BACKUP,
-  STATE_TOOL_CACHED_PATH
-} from './utils'
 
 const enableCache = core.getInput('enable-cache') === 'true'
 const cacheLocalStoragePath =
@@ -25,15 +20,6 @@ export async function run(): Promise<void> {
   } catch (error) {
     const err = error as Error
     core.setFailed(err.message)
-  }
-  const cachedPath = core.getState(STATE_TOOL_CACHED_PATH)
-  await io.rmRF(`${cachedPath}/${RYE_CONFIG_TOML}`)
-  if (fs.existsSync(`${cachedPath}/${RYE_CONFIG_TOML_BACKUP}`)) {
-    await io.mv(
-      `${cachedPath}/${RYE_CONFIG_TOML_BACKUP}`,
-      `${cachedPath}/${RYE_CONFIG_TOML}`
-    )
-    core.info(`Restored ${cachedPath}/${RYE_CONFIG_TOML}`)
   }
 }
 
