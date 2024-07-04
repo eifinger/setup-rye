@@ -59,23 +59,30 @@ jobs:
       - name: Setup with cache
         uses: ./
         with:
-          version: '0.11.0'
           enable-cache: true
           working-directory: __tests__/fixtures/rye-project
           cache-prefix: ${{ github.run_id }}-${{ github.run_attempt }}
           cache-local-storage-path: /tmp/rye-cache
       - run: rye sync
         working-directory: __tests__/fixtures/rye-project
-  test-restore-cache-local:
+  alter-venv-path-in-cache-local:
     runs-on: oracle-aarch64
     needs: test-setup-cache-local
+    steps:
+      - uses: actions/checkout@v4
+      - name: Alter venv path in cache
+        run: |
+          RYE_VENV_PATH=$(find /tmp/rye-cache -type f -name 'rye-venv.json' -path '/tmp/rye-cache/${{ github.run_id }}-${{ github.run_attempt }}*')
+          sed -i 's/"venv_path":\s*"[^"]*"/"venv_path": "something"/' "$RYE_VENV_PATH"
+  test-restore-cache-local:
+    runs-on: oracle-aarch64
+    needs: alter-venv-path-in-cache-local
     steps:
       - uses: actions/checkout@v4
       - name: Restore with cache
         id: restore
         uses: ./
         with:
-            version: '0.11.0'
             enable-cache: true
             working-directory: __tests__/fixtures/rye-project
             cache-prefix: ${{ github.run_id }}-${{ github.run_attempt }}

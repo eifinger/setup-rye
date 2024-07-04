@@ -84060,6 +84060,7 @@ const crypto = __importStar(__nccwpck_require__(6113));
 const cache = __importStar(__nccwpck_require__(7799));
 const glob = __importStar(__nccwpck_require__(8090));
 const core = __importStar(__nccwpck_require__(2186));
+const fs = __importStar(__nccwpck_require__(7147));
 const io_1 = __nccwpck_require__(7436);
 const io_util_1 = __nccwpck_require__(1962);
 const utils_1 = __nccwpck_require__(1314);
@@ -84109,12 +84110,27 @@ function handleMatchResult(matchedKey, primaryKey) {
     if (matchedKey) {
         core.saveState(exports.STATE_CACHE_MATCHED_KEY, matchedKey);
         core.info(`.venv restored from${cacheLocalStoragePath ? ' local' : ''} cache with key: ${matchedKey}`);
+        overwriteCachedVenvPath();
         core.setOutput('cache-hit', true);
     }
     else {
         core.info(`No${cacheLocalStoragePath ? ' local' : ''} cache found for key: ${primaryKey}`);
         core.setOutput('cache-hit', false);
     }
+}
+/**
+ * Overwrite the cached venv path in rye-venv.json
+ *
+ * Rye prevents unwanted behavior if people copy around .venv between projects.
+ * But we can be sure, that we are always working with the same project but the base path of previous runners might be different.
+ */
+function overwriteCachedVenvPath() {
+    const ryeVenvPath = `${exports.venvPath}/rye-venv.json`;
+    let ryeVenv = JSON.parse(fs.readFileSync(ryeVenvPath, 'utf8'));
+    core.debug(`venv_path in cache: ${ryeVenv.venv_path}`);
+    core.debug(`Overwriting cached venv_path with ${exports.venvPath}`);
+    ryeVenv.venv_path = exports.venvPath;
+    fs.writeFileSync(ryeVenvPath, JSON.stringify(ryeVenv));
 }
 function restoreCacheLocal(primaryKey) {
     return __awaiter(this, void 0, void 0, function* () {
