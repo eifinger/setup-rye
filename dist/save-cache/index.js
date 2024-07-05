@@ -83055,30 +83055,30 @@ function computeKeys(cachePrefix, version) {
     });
 }
 function handleMatchResult(matchedKey, primaryKey) {
-    if (matchedKey) {
-        core.saveState(exports.STATE_CACHE_MATCHED_KEY, matchedKey);
-        core.info(`.venv restored from${cacheLocalStoragePath ? ' local' : ''} cache with key: ${matchedKey}`);
-        overwriteCachedVenvPath();
-        core.setOutput('cache-hit', true);
-    }
-    else {
+    if (!matchedKey) {
         core.info(`No${cacheLocalStoragePath ? ' local' : ''} cache found for key: ${primaryKey}`);
         core.setOutput('cache-hit', false);
+        return;
     }
+    const venvPathMatch = doesCachedVenvPathMatchCurrentVenvPath();
+    if (!venvPathMatch) {
+        fs.rmSync(exports.venvPath, { recursive: true });
+        core.setOutput('cache-hit', false);
+        return;
+    }
+    core.saveState(exports.STATE_CACHE_MATCHED_KEY, matchedKey);
+    core.info(`.venv restored from${cacheLocalStoragePath ? ' local' : ''} cache with key: ${matchedKey}`);
+    core.setOutput('cache-hit', true);
 }
-/**
- * Overwrite the cached venv path in rye-venv.json
- *
- * Rye prevents unwanted behavior if people copy around .venv between projects.
- * But we can be sure, that we are always working with the same project but the base path of previous runners might be different.
- */
-function overwriteCachedVenvPath() {
+function doesCachedVenvPathMatchCurrentVenvPath() {
     const ryeVenvPath = `${exports.venvPath}/rye-venv.json`;
-    let ryeVenv = JSON.parse(fs.readFileSync(ryeVenvPath, 'utf8'));
-    core.debug(`venv_path in cache: ${ryeVenv.venv_path}`);
-    core.debug(`Overwriting cached venv_path with ${exports.venvPath}`);
-    ryeVenv.venv_path = exports.venvPath;
-    fs.writeFileSync(ryeVenvPath, JSON.stringify(ryeVenv));
+    const ryeVenv = JSON.parse(fs.readFileSync(ryeVenvPath, 'utf8'));
+    core.info(`Checking if the cached .venv matches the current path: ${exports.venvPath}`);
+    if (ryeVenv.venv_path != exports.venvPath) {
+        core.warning(`The .venv in the cache cannot be used because it is from another location: ${ryeVenv.venv_path}`);
+        return false;
+    }
+    return true;
 }
 function restoreCacheLocal(primaryKey) {
     return __awaiter(this, void 0, void 0, function* () {

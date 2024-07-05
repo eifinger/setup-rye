@@ -62,34 +62,41 @@ function handleMatchResult(
   matchedKey: string | undefined,
   primaryKey: string
 ): void {
-  if (matchedKey) {
-    core.saveState(STATE_CACHE_MATCHED_KEY, matchedKey)
-    core.info(
-      `.venv restored from${cacheLocalStoragePath ? ' local' : ''} cache with key: ${matchedKey}`
-    )
-    overwriteCachedVenvPath()
-    core.setOutput('cache-hit', true)
-  } else {
+  if (!matchedKey) {
     core.info(
       `No${cacheLocalStoragePath ? ' local' : ''} cache found for key: ${primaryKey}`
     )
     core.setOutput('cache-hit', false)
+    return
   }
+
+  const venvPathMatch = doesCachedVenvPathMatchCurrentVenvPath()
+  if (!venvPathMatch) {
+    fs.rmSync(venvPath, {recursive: true})
+    core.setOutput('cache-hit', false)
+    return
+  }
+
+  core.saveState(STATE_CACHE_MATCHED_KEY, matchedKey)
+  core.info(
+    `.venv restored from${cacheLocalStoragePath ? ' local' : ''} cache with key: ${matchedKey}`
+  )
+  core.setOutput('cache-hit', true)
 }
 
-/**
- * Overwrite the cached venv path in rye-venv.json
- *
- * Rye prevents unwanted behavior if people copy around .venv between projects.
- * But we can be sure, that we are always working with the same project but the base path of previous runners might be different.
- */
-function overwriteCachedVenvPath(): void {
+function doesCachedVenvPathMatchCurrentVenvPath(): boolean {
   const ryeVenvPath = `${venvPath}/rye-venv.json`
-  let ryeVenv = JSON.parse(fs.readFileSync(ryeVenvPath, 'utf8'))
-  core.debug(`venv_path in cache: ${ryeVenv.venv_path}`)
-  core.debug(`Overwriting cached venv_path with ${venvPath}`)
-  ryeVenv.venv_path = venvPath
-  fs.writeFileSync(ryeVenvPath, JSON.stringify(ryeVenv))
+  const ryeVenv = JSON.parse(fs.readFileSync(ryeVenvPath, 'utf8'))
+  core.info(
+    `Checking if the cached .venv matches the current path: ${venvPath}`
+  )
+  if (ryeVenv.venv_path != venvPath) {
+    core.warning(
+      `The .venv in the cache cannot be used because it is from another location: ${ryeVenv.venv_path}`
+    )
+    return false
+  }
+  return true
 }
 
 async function restoreCacheLocal(
