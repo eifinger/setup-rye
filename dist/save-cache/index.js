@@ -83157,6 +83157,7 @@ function run() {
             const err = error;
             core.setFailed(err.message);
         }
+        process.exit(0);
     });
 }
 exports.run = run;

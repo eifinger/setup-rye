@@ -84227,6 +84227,7 @@ function run() {
         catch (err) {
             core.setFailed(err.message);
         }
+        process.exit(0);
     });
 }
 function setupRye(platform, arch, versionInput, checkSum, githubToken) {

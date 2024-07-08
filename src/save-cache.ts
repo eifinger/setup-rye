@@ -21,6 +21,7 @@ export async function run(): Promise<void> {
     const err = error as Error
     core.setFailed(err.message)
   }
+  process.exit(0)
 }
 
 async function saveCache(): Promise<void> {
