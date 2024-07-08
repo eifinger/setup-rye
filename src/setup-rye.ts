@@ -50,6 +50,7 @@ async function run(): Promise<void> {
   } catch (err) {
     core.setFailed((err as Error).message)
   }
+  process.exit(0)
 }
 
 async function setupRye(
