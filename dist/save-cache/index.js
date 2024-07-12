@@ -83025,11 +83025,11 @@ const utils_1 = __nccwpck_require__(1314);
 exports.STATE_CACHE_KEY = 'cache-key';
 exports.STATE_CACHE_MATCHED_KEY = 'cache-matched-key';
 exports.workingDirInput = core.getInput('working-directory');
-exports.workingDir = exports.workingDirInput ? `/${exports.workingDirInput}` : '';
+exports.workingDir = exports.workingDirInput ? `${path_1.default.sep}${exports.workingDirInput}` : '';
 exports.venvPath = `${process.env['GITHUB_WORKSPACE']}${exports.workingDir}${path_1.default.sep}.venv`;
 const CACHE_VERSION = '5';
 const cacheLocalStoragePath = `${core.getInput('cache-local-storage-path')}` || '';
-const cacheDependencyPath = `${process.env['GITHUB_WORKSPACE']}${exports.workingDir}/requirements**.lock`;
+const cacheDependencyPath = `${process.env['GITHUB_WORKSPACE']}${exports.workingDir}${path_1.default.sep}${path_1.default.sep}requirements**.lock`;
 function restoreCache(cachePrefix, version) {
     return __awaiter(this, void 0, void 0, function* () {
         const cacheKey = yield computeKeys(cachePrefix, version);
@@ -83081,7 +83081,7 @@ function handleMatchResult(matchedKey, primaryKey) {
     core.setOutput('cache-hit', true);
 }
 function doesCachedVenvPathMatchCurrentVenvPath() {
-    const ryeVenvPath = `${exports.venvPath}/rye-venv.json`;
+    const ryeVenvPath = `${exports.venvPath}${path_1.default.sep}rye-venv.json`;
     const ryeVenv = JSON.parse(fs.readFileSync(ryeVenvPath, 'utf8'));
     core.info(`Checking if the cached .venv matches the current path: ${exports.venvPath}`);
     if (ryeVenv.venv_path != exports.venvPath) {
@@ -83092,9 +83092,9 @@ function doesCachedVenvPathMatchCurrentVenvPath() {
 }
 function restoreCacheLocal(primaryKey) {
     return __awaiter(this, void 0, void 0, function* () {
-        const storedCache = `${cacheLocalStoragePath}/${primaryKey}`;
+        const storedCache = `${cacheLocalStoragePath}${path_1.default.sep}${primaryKey}`;
         if (yield (0, io_util_1.exists)(storedCache)) {
-            yield (0, io_1.cp)(`${storedCache}/.venv`, exports.venvPath, {
+            yield (0, io_1.cp)(`${storedCache}${path_1.default.sep}.venv`, exports.venvPath, {
                 recursive: true
             });
             return primaryKey;
@@ -83142,11 +83142,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.run = void 0;
 const cache = __importStar(__nccwpck_require__(7799));
 const core = __importStar(__nccwpck_require__(2186));
 const io = __importStar(__nccwpck_require__(7436));
+const path_1 = __importDefault(__nccwpck_require__(1017));
 const restore_cache_1 = __nccwpck_require__(744);
 const enableCache = core.getInput('enable-cache') == 'true';
 const cacheLocalStoragePath = `${core.getInput('cache-local-storage-path')}` || '';
@@ -83187,9 +83191,9 @@ function saveCache() {
 }
 function saveCacheLocal(cacheKey) {
     return __awaiter(this, void 0, void 0, function* () {
-        const targetPath = `${cacheLocalStoragePath}/${cacheKey}`;
+        const targetPath = `${cacheLocalStoragePath}${path_1.default.sep}${cacheKey}`;
         yield io.mkdirP(targetPath);
-        yield io.cp(restore_cache_1.venvPath, `${targetPath}/.venv`, {
+        yield io.cp(restore_cache_1.venvPath, `${targetPath}${path_1.default.sep}.venv`, {
             recursive: true
         });
     });

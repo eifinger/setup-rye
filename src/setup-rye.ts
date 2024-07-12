@@ -122,24 +122,24 @@ async function installRye(
 }
 
 async function createConfigBackup(installedPath: string): Promise<void> {
-  if (fs.existsSync(`${installedPath}/${RYE_CONFIG_TOML}`)) {
+  if (fs.existsSync(`${installedPath}${path.sep}${RYE_CONFIG_TOML}`)) {
     await io.cp(
-      `${installedPath}/${RYE_CONFIG_TOML}`,
-      `${installedPath}/${RYE_CONFIG_TOML_BACKUP}`
+      `${installedPath}${path.sep}${RYE_CONFIG_TOML}`,
+      `${installedPath}${path.sep}${RYE_CONFIG_TOML_BACKUP}`
     )
-    core.info(`Backed up ${installedPath}/${RYE_CONFIG_TOML}`)
+    core.info(`Backed up ${installedPath}${path.sep}${RYE_CONFIG_TOML}`)
   }
 }
 
 async function ensureCleanConfig(installedPath: string): Promise<void> {
-  if (fs.existsSync(`${installedPath}/${RYE_CONFIG_TOML_BACKUP}`)) {
-    await io.rmRF(`${installedPath}/${RYE_CONFIG_TOML}`)
+  if (fs.existsSync(`${installedPath}${path.sep}${RYE_CONFIG_TOML_BACKUP}`)) {
+    await io.rmRF(`${installedPath}${path.sep}${RYE_CONFIG_TOML}`)
     await io.cp(
-      `${installedPath}/${RYE_CONFIG_TOML_BACKUP}`,
-      `${installedPath}/${RYE_CONFIG_TOML}`
+      `${installedPath}${path.sep}${RYE_CONFIG_TOML_BACKUP}`,
+      `${installedPath}${path.sep}${RYE_CONFIG_TOML}`
     )
     core.info(
-      `Restored clean ${RYE_CONFIG_TOML} from ${installedPath}/${RYE_CONFIG_TOML_BACKUP}`
+      `Restored clean ${RYE_CONFIG_TOML} from ${installedPath}${path.sep}${RYE_CONFIG_TOML_BACKUP}`
     )
   }
 }
@@ -154,14 +154,14 @@ function setVersion(version: string): void {
 }
 
 function addRyeToPath(cachedPath: string): void {
-  core.addPath(`${cachedPath}/shims`)
-  core.info(`Added ${cachedPath}/shims to the path`)
+  core.addPath(`${cachedPath}${path.sep}shims`)
+  core.info(`Added ${cachedPath}${path.sep}shims to the path`)
   core.exportVariable('RYE_HOME', cachedPath)
   core.info(`Set RYE_HOME to ${cachedPath}`)
 }
 
 function addMatchers(): void {
-  const matchersPath = path.join(__dirname, '../..', '.github')
+  const matchersPath = path.join(__dirname, `..${path.sep}..`, '.github')
   core.info(`##[add-matcher]${path.join(matchersPath, 'python.json')}`)
 }
 

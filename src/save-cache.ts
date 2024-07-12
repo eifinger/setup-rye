@@ -1,7 +1,7 @@
 import * as cache from '@actions/cache'
 import * as core from '@actions/core'
 import * as io from '@actions/io/'
-import * as fs from 'fs'
+import path from 'path'
 import {
   STATE_CACHE_MATCHED_KEY,
   STATE_CACHE_KEY,
@@ -45,9 +45,9 @@ async function saveCache(): Promise<void> {
 }
 
 async function saveCacheLocal(cacheKey: string): Promise<void> {
-  const targetPath = `${cacheLocalStoragePath}/${cacheKey}`
+  const targetPath = `${cacheLocalStoragePath}${path.sep}${cacheKey}`
   await io.mkdirP(targetPath)
-  await io.cp(venvPath, `${targetPath}/.venv`, {
+  await io.cp(venvPath, `${targetPath}${path.sep}.venv`, {
     recursive: true
   })
 }

@@ -11,12 +11,12 @@ import {getArch} from './utils'
 export const STATE_CACHE_KEY = 'cache-key'
 export const STATE_CACHE_MATCHED_KEY = 'cache-matched-key'
 export const workingDirInput = core.getInput('working-directory')
-export const workingDir = workingDirInput ? `/${workingDirInput}` : ''
+export const workingDir = workingDirInput ? `${path.sep}${workingDirInput}` : ''
 export const venvPath = `${process.env['GITHUB_WORKSPACE']}${workingDir}${path.sep}.venv`
 const CACHE_VERSION = '5'
 const cacheLocalStoragePath =
   `${core.getInput('cache-local-storage-path')}` || ''
-const cacheDependencyPath = `${process.env['GITHUB_WORKSPACE']}${workingDir}/requirements**.lock`
+const cacheDependencyPath = `${process.env['GITHUB_WORKSPACE']}${workingDir}${path.sep}${path.sep}requirements**.lock`
 
 export async function restoreCache(
   cachePrefix: string,
@@ -86,7 +86,7 @@ function handleMatchResult(
 }
 
 function doesCachedVenvPathMatchCurrentVenvPath(): boolean {
-  const ryeVenvPath = `${venvPath}/rye-venv.json`
+  const ryeVenvPath = `${venvPath}${path.sep}rye-venv.json`
   const ryeVenv = JSON.parse(fs.readFileSync(ryeVenvPath, 'utf8'))
   core.info(
     `Checking if the cached .venv matches the current path: ${venvPath}`
@@ -103,9 +103,9 @@ function doesCachedVenvPathMatchCurrentVenvPath(): boolean {
 async function restoreCacheLocal(
   primaryKey: string
 ): Promise<string | undefined> {
-  const storedCache = `${cacheLocalStoragePath}/${primaryKey}`
+  const storedCache = `${cacheLocalStoragePath}${path.sep}${primaryKey}`
   if (await exists(storedCache)) {
-    await cp(`${storedCache}/.venv`, venvPath, {
+    await cp(`${storedCache}${path.sep}.venv`, venvPath, {
       recursive: true
     })
     return primaryKey

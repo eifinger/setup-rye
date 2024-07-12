@@ -84108,11 +84108,11 @@ const utils_1 = __nccwpck_require__(1314);
 exports.STATE_CACHE_KEY = 'cache-key';
 exports.STATE_CACHE_MATCHED_KEY = 'cache-matched-key';
 exports.workingDirInput = core.getInput('working-directory');
-exports.workingDir = exports.workingDirInput ? `/${exports.workingDirInput}` : '';
+exports.workingDir = exports.workingDirInput ? `${path_1.default.sep}${exports.workingDirInput}` : '';
 exports.venvPath = `${process.env['GITHUB_WORKSPACE']}${exports.workingDir}${path_1.default.sep}.venv`;
 const CACHE_VERSION = '5';
 const cacheLocalStoragePath = `${core.getInput('cache-local-storage-path')}` || '';
-const cacheDependencyPath = `${process.env['GITHUB_WORKSPACE']}${exports.workingDir}/requirements**.lock`;
+const cacheDependencyPath = `${process.env['GITHUB_WORKSPACE']}${exports.workingDir}${path_1.default.sep}${path_1.default.sep}requirements**.lock`;
 function restoreCache(cachePrefix, version) {
     return __awaiter(this, void 0, void 0, function* () {
         const cacheKey = yield computeKeys(cachePrefix, version);
@@ -84164,7 +84164,7 @@ function handleMatchResult(matchedKey, primaryKey) {
     core.setOutput('cache-hit', true);
 }
 function doesCachedVenvPathMatchCurrentVenvPath() {
-    const ryeVenvPath = `${exports.venvPath}/rye-venv.json`;
+    const ryeVenvPath = `${exports.venvPath}${path_1.default.sep}rye-venv.json`;
     const ryeVenv = JSON.parse(fs.readFileSync(ryeVenvPath, 'utf8'));
     core.info(`Checking if the cached .venv matches the current path: ${exports.venvPath}`);
     if (ryeVenv.venv_path != exports.venvPath) {
@@ -84175,9 +84175,9 @@ function doesCachedVenvPathMatchCurrentVenvPath() {
 }
 function restoreCacheLocal(primaryKey) {
     return __awaiter(this, void 0, void 0, function* () {
-        const storedCache = `${cacheLocalStoragePath}/${primaryKey}`;
+        const storedCache = `${cacheLocalStoragePath}${path_1.default.sep}${primaryKey}`;
         if (yield (0, io_util_1.exists)(storedCache)) {
-            yield (0, io_1.cp)(`${storedCache}/.venv`, exports.venvPath, {
+            yield (0, io_1.cp)(`${storedCache}${path_1.default.sep}.venv`, exports.venvPath, {
                 recursive: true
             });
             return primaryKey;
@@ -84315,18 +84315,18 @@ function installRye(downloadPath, arch, version) {
 }
 function createConfigBackup(installedPath) {
     return __awaiter(this, void 0, void 0, function* () {
-        if (fs.existsSync(`${installedPath}/${utils_2.RYE_CONFIG_TOML}`)) {
-            yield io.cp(`${installedPath}/${utils_2.RYE_CONFIG_TOML}`, `${installedPath}/${utils_2.RYE_CONFIG_TOML_BACKUP}`);
-            core.info(`Backed up ${installedPath}/${utils_2.RYE_CONFIG_TOML}`);
+        if (fs.existsSync(`${installedPath}${path.sep}${utils_2.RYE_CONFIG_TOML}`)) {
+            yield io.cp(`${installedPath}${path.sep}${utils_2.RYE_CONFIG_TOML}`, `${installedPath}${path.sep}${utils_2.RYE_CONFIG_TOML_BACKUP}`);
+            core.info(`Backed up ${installedPath}${path.sep}${utils_2.RYE_CONFIG_TOML}`);
         }
     });
 }
 function ensureCleanConfig(installedPath) {
     return __awaiter(this, void 0, void 0, function* () {
-        if (fs.existsSync(`${installedPath}/${utils_2.RYE_CONFIG_TOML_BACKUP}`)) {
-            yield io.rmRF(`${installedPath}/${utils_2.RYE_CONFIG_TOML}`);
-            yield io.cp(`${installedPath}/${utils_2.RYE_CONFIG_TOML_BACKUP}`, `${installedPath}/${utils_2.RYE_CONFIG_TOML}`);
-            core.info(`Restored clean ${utils_2.RYE_CONFIG_TOML} from ${installedPath}/${utils_2.RYE_CONFIG_TOML_BACKUP}`);
+        if (fs.existsSync(`${installedPath}${path.sep}${utils_2.RYE_CONFIG_TOML_BACKUP}`)) {
+            yield io.rmRF(`${installedPath}${path.sep}${utils_2.RYE_CONFIG_TOML}`);
+            yield io.cp(`${installedPath}${path.sep}${utils_2.RYE_CONFIG_TOML_BACKUP}`, `${installedPath}${path.sep}${utils_2.RYE_CONFIG_TOML}`);
+            core.info(`Restored clean ${utils_2.RYE_CONFIG_TOML} from ${installedPath}${path.sep}${utils_2.RYE_CONFIG_TOML_BACKUP}`);
         }
     });
 }
@@ -84337,13 +84337,13 @@ function setVersion(version) {
     core.setOutput('rye-version', version);
 }
 function addRyeToPath(cachedPath) {
-    core.addPath(`${cachedPath}/shims`);
-    core.info(`Added ${cachedPath}/shims to the path`);
+    core.addPath(`${cachedPath}${path.sep}shims`);
+    core.info(`Added ${cachedPath}${path.sep}shims to the path`);
     core.exportVariable('RYE_HOME', cachedPath);
     core.info(`Set RYE_HOME to ${cachedPath}`);
 }
 function addMatchers() {
-    const matchersPath = path.join(__dirname, '../..', '.github');
+    const matchersPath = path.join(__dirname, `..${path.sep}..`, '.github');
     core.info(`##[add-matcher]${path.join(matchersPath, 'python.json')}`);
 }
 run();
