@@ -2,16 +2,28 @@ import * as core from '@actions/core'
 import * as tc from '@actions/tool-cache'
 import * as io from '@actions/io'
 import * as exec from '@actions/exec'
-import {Architecture, OWNER, REPO, extract, validateChecksum} from '../utils'
+import {
+  Architecture,
+  OWNER,
+  Platform,
+  REPO,
+  extract,
+  validateChecksum
+} from '../utils'
 
 export async function downloadLatest(
-  platform: string,
+  platform: Platform,
   arch: Architecture,
   checkSum: string | undefined,
   githubToken: string | undefined
 ): Promise<{downloadPath: string; version: string}> {
   const binary = `rye-${arch}-${platform}`
-  const downloadUrl = `https://github.com/${OWNER}/${REPO}/releases/latest/download/${binary}.gz`
+  let downloadUrl = `https://github.com/${OWNER}/${REPO}/releases/latest/download/${binary}`
+  if (platform === 'windows') {
+    downloadUrl += '.exe'
+  } else {
+    downloadUrl += '.gz'
+  }
   core.info(`Downloading Rye from "${downloadUrl}" ...`)
 
   const downloadPath = await tc.downloadTool(
@@ -19,9 +31,14 @@ export async function downloadLatest(
     undefined,
     githubToken
   )
-  const pathForValidation = `${downloadPath}_for_validation.gz`
-  await io.cp(downloadPath, pathForValidation)
-  await extract(downloadPath)
+
+  let pathForValidation = downloadPath
+  if (platform !== 'windows') {
+    // On Windows, the downloaded file is an executable, so we don't need to extract it
+    pathForValidation = `${downloadPath}_for_validation.gz`
+    await io.cp(downloadPath, pathForValidation)
+    await extract(downloadPath)
+  }
   const version = await getVersion(downloadPath)
   await validateChecksum(checkSum, pathForValidation, arch, platform, version)
 

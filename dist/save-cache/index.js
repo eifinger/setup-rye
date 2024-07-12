@@ -83233,16 +83233,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getArch = exports.isknownVersion = exports.validateFileCheckSum = exports.compareVersions = exports.extract = exports.validateChecksum = exports.ComparisonResult = exports.VERSIONS_WHICH_MODIFY_PROFILE = exports.EARLIEST_VERSION_WITH_NO_MODIFY_PATHSUPPORT = exports.RYE_CONFIG_TOML = exports.RYE_CONFIG_TOML_BACKUP = exports.toolsCacheName = exports.OWNER = exports.REPO = exports.WINDOWS_PLATFORMS = exports.WINDOWS_ARCHS = exports.IS_MAC = exports.IS_LINUX = exports.IS_WINDOWS = void 0;
+exports.getPlatform = exports.getArch = exports.isknownVersion = exports.validateFileCheckSum = exports.compareVersions = exports.extract = exports.validateChecksum = exports.ComparisonResult = exports.VERSIONS_WHICH_MODIFY_PROFILE = exports.EARLIEST_VERSION_WITH_NO_MODIFY_PATHSUPPORT = exports.RYE_CONFIG_TOML = exports.RYE_CONFIG_TOML_BACKUP = exports.toolsCacheName = exports.OWNER = exports.REPO = exports.WINDOWS_PLATFORMS = exports.WINDOWS_ARCHS = void 0;
 const fs = __importStar(__nccwpck_require__(7147));
 const crypto = __importStar(__nccwpck_require__(6113));
 const io = __importStar(__nccwpck_require__(7436));
 const core = __importStar(__nccwpck_require__(2186));
 const exec = __importStar(__nccwpck_require__(1514));
 const checksums_1 = __nccwpck_require__(1541);
-exports.IS_WINDOWS = process.platform === 'win32';
-exports.IS_LINUX = process.platform === 'linux';
-exports.IS_MAC = process.platform === 'darwin';
 exports.WINDOWS_ARCHS = ['x86', 'x64'];
 exports.WINDOWS_PLATFORMS = ['win32', 'win64'];
 exports.REPO = 'rye';
@@ -83334,6 +83331,7 @@ function isknownVersion(version) {
 exports.isknownVersion = isknownVersion;
 function getArch() {
     const arch = process.arch;
+    core.debug(`Arch: ${arch}`);
     const archMapping = {
         ia32: 'x86',
         x64: 'x86_64',
@@ -83344,6 +83342,20 @@ function getArch() {
     }
 }
 exports.getArch = getArch;
+function getPlatform() {
+    const platform = process.platform;
+    core.debug(`Platform: ${platform}`);
+    if (platform === 'linux') {
+        return 'linux';
+    }
+    else if (platform === 'darwin') {
+        return 'macos';
+    }
+    else if (platform === 'win32') {
+        return 'windows';
+    }
+}
+exports.getPlatform = getPlatform;
 
 
 /***/ }),

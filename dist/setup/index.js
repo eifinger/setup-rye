@@ -83915,12 +83915,22 @@ const utils_1 = __nccwpck_require__(1314);
 function downloadLatest(platform, arch, checkSum, githubToken) {
     return __awaiter(this, void 0, void 0, function* () {
         const binary = `rye-${arch}-${platform}`;
-        const downloadUrl = `https://github.com/${utils_1.OWNER}/${utils_1.REPO}/releases/latest/download/${binary}.gz`;
+        let downloadUrl = `https://github.com/${utils_1.OWNER}/${utils_1.REPO}/releases/latest/download/${binary}`;
+        if (platform === 'windows') {
+            downloadUrl += '.exe';
+        }
+        else {
+            downloadUrl += '.gz';
+        }
         core.info(`Downloading Rye from "${downloadUrl}" ...`);
         const downloadPath = yield tc.downloadTool(downloadUrl, undefined, githubToken);
-        const pathForValidation = `${downloadPath}_for_validation.gz`;
-        yield io.cp(downloadPath, pathForValidation);
-        yield (0, utils_1.extract)(downloadPath);
+        let pathForValidation = downloadPath;
+        if (platform !== 'windows') {
+            // On Windows, the downloaded file is an executable, so we don't need to extract it
+            pathForValidation = `${downloadPath}_for_validation.gz`;
+            yield io.cp(downloadPath, pathForValidation);
+            yield (0, utils_1.extract)(downloadPath);
+        }
         const version = yield getVersion(downloadPath);
         yield (0, utils_1.validateChecksum)(checkSum, pathForValidation, arch, platform, version);
         return { downloadPath, version };
@@ -84010,11 +84020,20 @@ exports.tryGetFromCache = tryGetFromCache;
 function downloadVersion(platform, arch, version, checkSum, githubToken) {
     return __awaiter(this, void 0, void 0, function* () {
         const binary = `rye-${arch}-${platform}`;
-        const downloadUrl = `https://github.com/${utils_1.OWNER}/${utils_1.REPO}/releases/download/${version}/${binary}.gz`;
+        let downloadUrl = `https://github.com/${utils_1.OWNER}/${utils_1.REPO}/releases/latest/download/${binary}`;
+        if (platform === 'windows') {
+            downloadUrl += '.exe';
+        }
+        else {
+            downloadUrl += '.gz';
+        }
         core.info(`Downloading Rye from "${downloadUrl}" ...`);
         const downloadPath = yield tc.downloadTool(downloadUrl, undefined, githubToken);
         yield (0, utils_1.validateChecksum)(checkSum, downloadPath, arch, platform, version);
-        yield (0, utils_1.extract)(downloadPath);
+        if (platform !== 'windows') {
+            // On Windows, the downloaded file is an executable, so we don't need to extract it
+            yield (0, utils_1.extract)(downloadPath);
+        }
         return downloadPath;
     });
 }
@@ -84204,7 +84223,7 @@ const download_latest_1 = __nccwpck_require__(5871);
 const utils_2 = __nccwpck_require__(1314);
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
-        const platform = utils_1.IS_MAC ? 'macos' : 'linux';
+        const platform = (0, utils_1.getPlatform)();
         const arch = (0, utils_1.getArch)();
         const versionInput = core.getInput('version');
         const checkSum = core.getInput('checksum');
@@ -84212,6 +84231,9 @@ function run() {
         const cachePrefix = core.getInput('cache-prefix') || '';
         const githubToken = core.getInput('github-token');
         try {
+            if (platform === undefined) {
+                throw new Error(`Unsupported platform: ${process.platform}`);
+            }
             if (arch === undefined) {
                 throw new Error(`Unsupported architecture: ${process.arch}`);
             }
@@ -84351,16 +84373,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getArch = exports.isknownVersion = exports.validateFileCheckSum = exports.compareVersions = exports.extract = exports.validateChecksum = exports.ComparisonResult = exports.VERSIONS_WHICH_MODIFY_PROFILE = exports.EARLIEST_VERSION_WITH_NO_MODIFY_PATHSUPPORT = exports.RYE_CONFIG_TOML = exports.RYE_CONFIG_TOML_BACKUP = exports.toolsCacheName = exports.OWNER = exports.REPO = exports.WINDOWS_PLATFORMS = exports.WINDOWS_ARCHS = exports.IS_MAC = exports.IS_LINUX = exports.IS_WINDOWS = void 0;
+exports.getPlatform = exports.getArch = exports.isknownVersion = exports.validateFileCheckSum = exports.compareVersions = exports.extract = exports.validateChecksum = exports.ComparisonResult = exports.VERSIONS_WHICH_MODIFY_PROFILE = exports.EARLIEST_VERSION_WITH_NO_MODIFY_PATHSUPPORT = exports.RYE_CONFIG_TOML = exports.RYE_CONFIG_TOML_BACKUP = exports.toolsCacheName = exports.OWNER = exports.REPO = exports.WINDOWS_PLATFORMS = exports.WINDOWS_ARCHS = void 0;
 const fs = __importStar(__nccwpck_require__(7147));
 const crypto = __importStar(__nccwpck_require__(6113));
 const io = __importStar(__nccwpck_require__(7436));
 const core = __importStar(__nccwpck_require__(2186));
 const exec = __importStar(__nccwpck_require__(1514));
 const checksums_1 = __nccwpck_require__(1541);
-exports.IS_WINDOWS = process.platform === 'win32';
-exports.IS_LINUX = process.platform === 'linux';
-exports.IS_MAC = process.platform === 'darwin';
 exports.WINDOWS_ARCHS = ['x86', 'x64'];
 exports.WINDOWS_PLATFORMS = ['win32', 'win64'];
 exports.REPO = 'rye';
@@ -84452,6 +84471,7 @@ function isknownVersion(version) {
 exports.isknownVersion = isknownVersion;
 function getArch() {
     const arch = process.arch;
+    core.debug(`Arch: ${arch}`);
     const archMapping = {
         ia32: 'x86',
         x64: 'x86_64',
@@ -84462,6 +84482,20 @@ function getArch() {
     }
 }
 exports.getArch = getArch;
+function getPlatform() {
+    const platform = process.platform;
+    core.debug(`Platform: ${platform}`);
+    if (platform === 'linux') {
+        return 'linux';
+    }
+    else if (platform === 'darwin') {
+        return 'macos';
+    }
+    else if (platform === 'win32') {
+        return 'windows';
+    }
+}
+exports.getPlatform = getPlatform;
 
 
 /***/ }),

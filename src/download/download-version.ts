@@ -3,6 +3,7 @@ import * as tc from '@actions/tool-cache'
 import {
   Architecture,
   OWNER,
+  Platform,
   REPO,
   extract,
   toolsCacheName,
@@ -20,14 +21,19 @@ export function tryGetFromCache(
 }
 
 export async function downloadVersion(
-  platform: string,
+  platform: Platform,
   arch: Architecture,
   version: string,
   checkSum: string | undefined,
   githubToken: string | undefined
 ): Promise<string> {
   const binary = `rye-${arch}-${platform}`
-  const downloadUrl = `https://github.com/${OWNER}/${REPO}/releases/download/${version}/${binary}.gz`
+  let downloadUrl = `https://github.com/${OWNER}/${REPO}/releases/latest/download/${binary}`
+  if (platform === 'windows') {
+    downloadUrl += '.exe'
+  } else {
+    downloadUrl += '.gz'
+  }
   core.info(`Downloading Rye from "${downloadUrl}" ...`)
 
   const downloadPath = await tc.downloadTool(
@@ -37,6 +43,9 @@ export async function downloadVersion(
   )
   await validateChecksum(checkSum, downloadPath, arch, platform, version)
 
-  await extract(downloadPath)
+  if (platform !== 'windows') {
+    // On Windows, the downloaded file is an executable, so we don't need to extract it
+    await extract(downloadPath)
+  }
   return downloadPath
 }

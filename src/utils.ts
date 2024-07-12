@@ -5,9 +5,6 @@ import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import {KNOWN_CHECKSUMS} from './checksums'
 
-export const IS_WINDOWS = process.platform === 'win32'
-export const IS_LINUX = process.platform === 'linux'
-export const IS_MAC = process.platform === 'darwin'
 export const WINDOWS_ARCHS = ['x86', 'x64']
 export const WINDOWS_PLATFORMS = ['win32', 'win64']
 
@@ -111,6 +108,7 @@ export function isknownVersion(version: string): boolean {
 
 export function getArch(): Architecture | undefined {
   const arch = process.arch
+  core.debug(`Arch: ${arch}`)
   const archMapping: {[key: string]: Architecture} = {
     ia32: 'x86',
     x64: 'x86_64',
@@ -123,11 +121,13 @@ export function getArch(): Architecture | undefined {
 }
 
 export function getPlatform(): Platform | undefined {
-  if (IS_MAC) {
-    return 'macos'
-  } else if (IS_LINUX) {
+  const platform = process.platform
+  core.debug(`Platform: ${platform}`)
+  if (platform === 'linux') {
     return 'linux'
-  } else if (IS_WINDOWS) {
+  } else if (platform === 'darwin') {
+    return 'macos'
+  } else if (platform === 'win32') {
     return 'windows'
   }
 }
