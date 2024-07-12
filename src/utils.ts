@@ -40,7 +40,7 @@ export async function validateChecksum(
   version: string
 ): Promise<void> {
   let isValid = true
-  if (checkSum !== undefined && checkSum !== '') {
+  if (checkSum != undefined && checkSum != '') {
     isValid = await validateFileCheckSum(downloadPath, checkSum)
   } else {
     core.debug(`Checksum not provided. Checking known checksums.`)
@@ -96,7 +96,7 @@ export async function validateFileCheckSum(
     stream.on('data', chunk => hash.update(chunk))
     stream.on('end', () => {
       const actual = hash.digest('hex')
-      resolve(actual === expected)
+      resolve(actual == expected)
     })
   })
 }
@@ -123,11 +123,11 @@ export function getArch(): Architecture | undefined {
 export function getPlatform(): Platform | undefined {
   const platform = process.platform
   core.debug(`Platform: ${platform}`)
-  if (platform === 'linux') {
+  if (platform == 'linux') {
     return 'linux'
-  } else if (platform === 'darwin') {
+  } else if (platform == 'darwin') {
     return 'macos'
-  } else if (platform === 'win32') {
+  } else if (platform == 'win32') {
     return 'windows'
   }
 }

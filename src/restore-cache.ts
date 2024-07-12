@@ -96,7 +96,7 @@ function doesCachedVenvPathMatchCurrentVenvPath(): boolean {
   core.info(
     `Checking if the cached .venv matches the current path: ${resolvedVenvPath}`
   )
-  if (normalizedVenvPath !== resolvedVenvPath) {
+  if (normalizedVenvPath != resolvedVenvPath) {
     core.warning(
       `The .venv in the cache cannot be used because it is from another location: ${normalizedVenvPath}`
     )

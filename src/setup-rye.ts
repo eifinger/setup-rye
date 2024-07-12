@@ -24,15 +24,15 @@ async function run(): Promise<void> {
   const arch = getArch()
   const versionInput = core.getInput('version')
   const checkSum = core.getInput('checksum')
-  const enableCache = core.getInput('enable-cache') === 'true'
+  const enableCache = core.getInput('enable-cache') == 'true'
   const cachePrefix = core.getInput('cache-prefix') || ''
   const githubToken = core.getInput('github-token')
 
   try {
-    if (platform === undefined) {
+    if (platform == undefined) {
       throw new Error(`Unsupported platform: ${process.platform}`)
     }
-    if (arch === undefined) {
+    if (arch == undefined) {
       throw new Error(`Unsupported architecture: ${process.arch}`)
     }
     const setupResult = await setupRye(
@@ -67,7 +67,7 @@ async function setupRye(
   let installedPath: string | undefined
   let downloadPath: string
   let version: string
-  if (versionInput === 'latest') {
+  if (versionInput == 'latest') {
     const result = await downloadLatest(platform, arch, checkSum, githubToken)
     version = result.version
     downloadPath = result.downloadPath

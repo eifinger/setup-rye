@@ -83916,7 +83916,7 @@ function downloadLatest(platform, arch, checkSum, githubToken) {
     return __awaiter(this, void 0, void 0, function* () {
         const binary = `rye-${arch}-${platform}`;
         let downloadUrl = `https://github.com/${utils_1.OWNER}/${utils_1.REPO}/releases/latest/download/${binary}`;
-        if (platform === 'windows') {
+        if (platform == 'windows') {
             downloadUrl += '.exe';
         }
         else {
@@ -83925,7 +83925,7 @@ function downloadLatest(platform, arch, checkSum, githubToken) {
         core.info(`Downloading Rye from "${downloadUrl}" ...`);
         let downloadPath = yield tc.downloadTool(downloadUrl, undefined, githubToken);
         let pathForValidation;
-        if (platform === 'windows') {
+        if (platform == 'windows') {
             // On Windows, the downloaded file is an executable, so we don't need to extract it
             // but the file must has a valid extension for an executable file.
             yield io.mv(downloadPath, `${downloadPath}.exe`);
@@ -84028,7 +84028,7 @@ function downloadVersion(platform, arch, version, checkSum, githubToken) {
     return __awaiter(this, void 0, void 0, function* () {
         const binary = `rye-${arch}-${platform}`;
         let downloadUrl = `https://github.com/${utils_1.OWNER}/${utils_1.REPO}/releases/download/${version}/${binary}`;
-        if (platform === 'windows') {
+        if (platform == 'windows') {
             downloadUrl += '.exe';
         }
         else {
@@ -84037,7 +84037,7 @@ function downloadVersion(platform, arch, version, checkSum, githubToken) {
         core.info(`Downloading Rye from "${downloadUrl}" ...`);
         let downloadPath = yield tc.downloadTool(downloadUrl, undefined, githubToken);
         yield (0, utils_1.validateChecksum)(checkSum, downloadPath, arch, platform, version);
-        if (platform === 'windows') {
+        if (platform == 'windows') {
             // On Windows, the downloaded file is an executable, so we don't need to extract it
             // but the file must has a valid extension for an executable file.
             yield io.mv(downloadPath, `${downloadPath}.exe`);
@@ -84170,7 +84170,7 @@ function doesCachedVenvPathMatchCurrentVenvPath() {
     const normalizedVenvPath = path_1.default.normalize(ryeVenv.venv_path);
     const resolvedVenvPath = path_1.default.resolve(exports.venvPath);
     core.info(`Checking if the cached .venv matches the current path: ${resolvedVenvPath}`);
-    if (normalizedVenvPath !== resolvedVenvPath) {
+    if (normalizedVenvPath != resolvedVenvPath) {
         core.warning(`The .venv in the cache cannot be used because it is from another location: ${normalizedVenvPath}`);
         return false;
     }
@@ -84246,14 +84246,14 @@ function run() {
         const arch = (0, utils_1.getArch)();
         const versionInput = core.getInput('version');
         const checkSum = core.getInput('checksum');
-        const enableCache = core.getInput('enable-cache') === 'true';
+        const enableCache = core.getInput('enable-cache') == 'true';
         const cachePrefix = core.getInput('cache-prefix') || '';
         const githubToken = core.getInput('github-token');
         try {
-            if (platform === undefined) {
+            if (platform == undefined) {
                 throw new Error(`Unsupported platform: ${process.platform}`);
             }
-            if (arch === undefined) {
+            if (arch == undefined) {
                 throw new Error(`Unsupported architecture: ${process.arch}`);
             }
             const setupResult = yield setupRye(platform, arch, versionInput, checkSum, githubToken);
@@ -84276,7 +84276,7 @@ function setupRye(platform, arch, versionInput, checkSum, githubToken) {
         let installedPath;
         let downloadPath;
         let version;
-        if (versionInput === 'latest') {
+        if (versionInput == 'latest') {
             const result = yield (0, download_latest_1.downloadLatest)(platform, arch, checkSum, githubToken);
             version = result.version;
             downloadPath = result.downloadPath;
@@ -84422,7 +84422,7 @@ var ComparisonResult;
 function validateChecksum(checkSum, downloadPath, arch, platform, version) {
     return __awaiter(this, void 0, void 0, function* () {
         let isValid = true;
-        if (checkSum !== undefined && checkSum !== '') {
+        if (checkSum != undefined && checkSum != '') {
             isValid = yield validateFileCheckSum(downloadPath, checkSum);
         }
         else {
@@ -84477,7 +84477,7 @@ function validateFileCheckSum(filePath, expected) {
             stream.on('data', chunk => hash.update(chunk));
             stream.on('end', () => {
                 const actual = hash.digest('hex');
-                resolve(actual === expected);
+                resolve(actual == expected);
             });
         });
     });
@@ -84504,13 +84504,13 @@ exports.getArch = getArch;
 function getPlatform() {
     const platform = process.platform;
     core.debug(`Platform: ${platform}`);
-    if (platform === 'linux') {
+    if (platform == 'linux') {
         return 'linux';
     }
-    else if (platform === 'darwin') {
+    else if (platform == 'darwin') {
         return 'macos';
     }
-    else if (platform === 'win32') {
+    else if (platform == 'win32') {
         return 'windows';
     }
 }
