@@ -26,6 +26,7 @@ export const VERSIONS_WHICH_MODIFY_PROFILE = [
   '0.24.0'
 ]
 
+export type Platform = 'linux' | 'macos' | 'windows'
 export type Architecture = 'x86' | 'x86_64' | 'aarch64'
 
 export enum ComparisonResult {
@@ -118,5 +119,15 @@ export function getArch(): Architecture | undefined {
 
   if (arch in archMapping) {
     return archMapping[arch]
+  }
+}
+
+export function getPlatform(): Platform | undefined {
+  if (IS_MAC) {
+    return 'macos'
+  } else if (IS_LINUX) {
+    return 'linux'
+  } else if (IS_WINDOWS) {
+    return 'windows'
   }
 }

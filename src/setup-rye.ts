@@ -11,15 +11,16 @@ import {
   EARLIEST_VERSION_WITH_NO_MODIFY_PATHSUPPORT,
   VERSIONS_WHICH_MODIFY_PROFILE,
   getArch,
-  IS_MAC,
   compareVersions,
-  toolsCacheName
+  toolsCacheName,
+  getPlatform,
+  Platform
 } from './utils'
 import {downloadLatest} from './download/download-latest'
 import {RYE_CONFIG_TOML, RYE_CONFIG_TOML_BACKUP} from './utils'
 
 async function run(): Promise<void> {
-  const platform = IS_MAC ? 'macos' : 'linux'
+  const platform = getPlatform()
   const arch = getArch()
   const versionInput = core.getInput('version')
   const checkSum = core.getInput('checksum')
@@ -28,6 +29,9 @@ async function run(): Promise<void> {
   const githubToken = core.getInput('github-token')
 
   try {
+    if (platform === undefined) {
+      throw new Error(`Unsupported platform: ${process.platform}`)
+    }
     if (arch === undefined) {
       throw new Error(`Unsupported architecture: ${process.arch}`)
     }
@@ -54,7 +58,7 @@ async function run(): Promise<void> {
 }
 
 async function setupRye(
-  platform: string,
+  platform: Platform,
   arch: Architecture,
   versionInput: string,
   checkSum: string | undefined,
