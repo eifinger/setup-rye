@@ -83923,10 +83923,15 @@ function downloadLatest(platform, arch, checkSum, githubToken) {
             downloadUrl += '.gz';
         }
         core.info(`Downloading Rye from "${downloadUrl}" ...`);
-        const downloadPath = yield tc.downloadTool(downloadUrl, undefined, githubToken);
+        let downloadPath = yield tc.downloadTool(downloadUrl, undefined, githubToken);
         let pathForValidation = downloadPath;
-        if (platform !== 'windows') {
+        if (platform === 'windows') {
             // On Windows, the downloaded file is an executable, so we don't need to extract it
+            // but the file must has a valid extension for an executable file.
+            yield io.mv(downloadPath, `${downloadPath}.exe`);
+            downloadPath = `${downloadPath}.exe`;
+        }
+        else {
             pathForValidation = `${downloadPath}_for_validation.gz`;
             yield io.cp(downloadPath, pathForValidation);
             yield (0, utils_1.extract)(downloadPath);
@@ -84009,6 +84014,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.downloadVersion = exports.tryGetFromCache = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const tc = __importStar(__nccwpck_require__(7784));
+const io = __importStar(__nccwpck_require__(7436));
 const utils_1 = __nccwpck_require__(1314);
 function tryGetFromCache(arch, version) {
     core.debug(`Trying to get rye from tool cache for ${version}...`);
@@ -84028,10 +84034,15 @@ function downloadVersion(platform, arch, version, checkSum, githubToken) {
             downloadUrl += '.gz';
         }
         core.info(`Downloading Rye from "${downloadUrl}" ...`);
-        const downloadPath = yield tc.downloadTool(downloadUrl, undefined, githubToken);
+        let downloadPath = yield tc.downloadTool(downloadUrl, undefined, githubToken);
         yield (0, utils_1.validateChecksum)(checkSum, downloadPath, arch, platform, version);
-        if (platform !== 'windows') {
+        if (platform === 'windows') {
             // On Windows, the downloaded file is an executable, so we don't need to extract it
+            // but the file must has a valid extension for an executable file.
+            yield io.mv(downloadPath, `${downloadPath}.exe`);
+            downloadPath = `${downloadPath}.exe`;
+        }
+        else {
             yield (0, utils_1.extract)(downloadPath);
         }
         return downloadPath;

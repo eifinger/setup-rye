@@ -1,5 +1,6 @@
 import * as core from '@actions/core'
 import * as tc from '@actions/tool-cache'
+import * as io from '@actions/io'
 import {
   Architecture,
   OWNER,
@@ -36,15 +37,15 @@ export async function downloadVersion(
   }
   core.info(`Downloading Rye from "${downloadUrl}" ...`)
 
-  const downloadPath = await tc.downloadTool(
-    downloadUrl,
-    undefined,
-    githubToken
-  )
+  let downloadPath = await tc.downloadTool(downloadUrl, undefined, githubToken)
   await validateChecksum(checkSum, downloadPath, arch, platform, version)
 
-  if (platform !== 'windows') {
+  if (platform === 'windows') {
     // On Windows, the downloaded file is an executable, so we don't need to extract it
+    // but the file must has a valid extension for an executable file.
+    await io.mv(downloadPath, `${downloadPath}.exe`)
+    downloadPath = `${downloadPath}.exe`
+  } else {
     await extract(downloadPath)
   }
   return downloadPath
