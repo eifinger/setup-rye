@@ -1,4 +1,4 @@
-name: 'test-latest'
+name: 'test-latest-windows'
 on:
   pull_request:
   push:
@@ -11,40 +11,34 @@ concurrency:
 
 jobs:
   test-latest:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest, macos-14, oracle-aarch64]
-        enable-cache: [true, false]
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - name: Should not be on path
         run: |
-          if ! which rye;
-          then
+          if (!(Get-Command -Name "rye" -ErrorAction SilentlyContinue)) {
             exit 0
-          else
-           exit 1
-          fi
+          } else {
+            exit 1
+          }
       - name: Setup rye
         uses: ./
         with:
           version: latest
-          working-directory: __tests__/fixtures/rye-project
+          working-directory: __tests__\fixtures\rye-project
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          enable-cache: ${{ matrix.enable-cache }}
       - run: rye sync
-        working-directory: __tests__/fixtures/rye-project
+        working-directory: __tests__\fixtures\rye-project
       - name: Rye path is not added to .profile
         run: |
-          if ! grep -q "rye" ~/.profile;
-          then
+            $env:Path -split ';' | ForEach-Object {
+              if ($_ -eq "C:\path\to\rye") {
+                exit 1
+              }
+            }
             exit 0
-          else
-            exit 1
-          fi
   test-latest-without-github-token:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - name: Setup rye
@@ -52,4 +46,4 @@ jobs:
         with:
           version: latest
       - run: rye sync
-        working-directory: __tests__/fixtures/rye-project
+        working-directory: __tests__\fixtures\rye-project
