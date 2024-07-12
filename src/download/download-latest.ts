@@ -27,12 +27,13 @@ export async function downloadLatest(
   core.info(`Downloading Rye from "${downloadUrl}" ...`)
 
   let downloadPath = await tc.downloadTool(downloadUrl, undefined, githubToken)
-  let pathForValidation = downloadPath
+  let pathForValidation: string
   if (platform === 'windows') {
     // On Windows, the downloaded file is an executable, so we don't need to extract it
     // but the file must has a valid extension for an executable file.
     await io.mv(downloadPath, `${downloadPath}.exe`)
     downloadPath = `${downloadPath}.exe`
+    pathForValidation = downloadPath
   } else {
     pathForValidation = `${downloadPath}_for_validation.gz`
     await io.cp(downloadPath, pathForValidation)

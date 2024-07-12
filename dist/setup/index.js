@@ -83924,12 +83924,13 @@ function downloadLatest(platform, arch, checkSum, githubToken) {
         }
         core.info(`Downloading Rye from "${downloadUrl}" ...`);
         let downloadPath = yield tc.downloadTool(downloadUrl, undefined, githubToken);
-        let pathForValidation = downloadPath;
+        let pathForValidation;
         if (platform === 'windows') {
             // On Windows, the downloaded file is an executable, so we don't need to extract it
             // but the file must has a valid extension for an executable file.
             yield io.mv(downloadPath, `${downloadPath}.exe`);
             downloadPath = `${downloadPath}.exe`;
+            pathForValidation = downloadPath;
         }
         else {
             pathForValidation = `${downloadPath}_for_validation.gz`;
