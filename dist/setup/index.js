@@ -84027,7 +84027,7 @@ exports.tryGetFromCache = tryGetFromCache;
 function downloadVersion(platform, arch, version, checkSum, githubToken) {
     return __awaiter(this, void 0, void 0, function* () {
         const binary = `rye-${arch}-${platform}`;
-        let downloadUrl = `https://github.com/${utils_1.OWNER}/${utils_1.REPO}/releases/latest/download/${binary}`;
+        let downloadUrl = `https://github.com/${utils_1.OWNER}/${utils_1.REPO}/releases/download/${version}/${binary}`;
         if (platform === 'windows') {
             downloadUrl += '.exe';
         }

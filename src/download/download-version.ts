@@ -29,7 +29,7 @@ export async function downloadVersion(
   githubToken: string | undefined
 ): Promise<string> {
   const binary = `rye-${arch}-${platform}`
-  let downloadUrl = `https://github.com/${OWNER}/${REPO}/releases/latest/download/${binary}`
+  let downloadUrl = `https://github.com/${OWNER}/${REPO}/releases/download/${version}/${binary}`
   if (platform === 'windows') {
     downloadUrl += '.exe'
   } else {
