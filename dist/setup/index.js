@@ -84091,6 +84091,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.restoreCache = exports.venvPath = exports.workingDir = exports.workingDirInput = exports.STATE_CACHE_MATCHED_KEY = exports.STATE_CACHE_KEY = void 0;
 const crypto = __importStar(__nccwpck_require__(6113));
@@ -84098,6 +84101,7 @@ const cache = __importStar(__nccwpck_require__(7799));
 const glob = __importStar(__nccwpck_require__(8090));
 const core = __importStar(__nccwpck_require__(2186));
 const fs = __importStar(__nccwpck_require__(7147));
+const path_1 = __importDefault(__nccwpck_require__(1017));
 const io_1 = __nccwpck_require__(7436);
 const io_util_1 = __nccwpck_require__(1962);
 const utils_1 = __nccwpck_require__(1314);
@@ -84162,9 +84166,12 @@ function handleMatchResult(matchedKey, primaryKey) {
 function doesCachedVenvPathMatchCurrentVenvPath() {
     const ryeVenvPath = `${exports.venvPath}/rye-venv.json`;
     const ryeVenv = JSON.parse(fs.readFileSync(ryeVenvPath, 'utf8'));
-    core.info(`Checking if the cached .venv matches the current path: ${exports.venvPath}`);
-    if (ryeVenv.venv_path != exports.venvPath) {
-        core.warning(`The .venv in the cache cannot be used because it is from another location: ${ryeVenv.venv_path}`);
+    // Use path.normalize and path.resolve to ensure consistent path formatting
+    const normalizedVenvPath = path_1.default.normalize(ryeVenv.venv_path);
+    const resolvedVenvPath = path_1.default.resolve(exports.venvPath);
+    core.info(`Checking if the cached .venv matches the current path: ${resolvedVenvPath}`);
+    if (normalizedVenvPath !== resolvedVenvPath) {
+        core.warning(`The .venv in the cache cannot be used because it is from another location: ${normalizedVenvPath}`);
         return false;
     }
     return true;

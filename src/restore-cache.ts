@@ -3,6 +3,7 @@ import * as cache from '@actions/cache'
 import * as glob from '@actions/glob'
 import * as core from '@actions/core'
 import * as fs from 'fs'
+import path from 'path'
 import {cp} from '@actions/io/'
 import {exists} from '@actions/io/lib/io-util'
 import {getArch} from './utils'
@@ -87,12 +88,17 @@ function handleMatchResult(
 function doesCachedVenvPathMatchCurrentVenvPath(): boolean {
   const ryeVenvPath = `${venvPath}/rye-venv.json`
   const ryeVenv = JSON.parse(fs.readFileSync(ryeVenvPath, 'utf8'))
+
+  // Use path.normalize and path.resolve to ensure consistent path formatting
+  const normalizedVenvPath = path.normalize(ryeVenv.venv_path)
+  const resolvedVenvPath = path.resolve(venvPath)
+
   core.info(
-    `Checking if the cached .venv matches the current path: ${venvPath}`
+    `Checking if the cached .venv matches the current path: ${resolvedVenvPath}`
   )
-  if (ryeVenv.venv_path != venvPath) {
+  if (normalizedVenvPath !== resolvedVenvPath) {
     core.warning(
-      `The .venv in the cache cannot be used because it is from another location: ${ryeVenv.venv_path}`
+      `The .venv in the cache cannot be used because it is from another location: ${normalizedVenvPath}`
     )
     return false
   }
