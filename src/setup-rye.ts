@@ -14,25 +14,26 @@ import {
   compareVersions,
   toolsCacheName,
   getPlatform,
-  Platform
+  Platform,
+  RYE_CONFIG_TOML,
+  RYE_CONFIG_TOML_BACKUP
 } from './utils'
 import {downloadLatest} from './download/download-latest'
-import {RYE_CONFIG_TOML, RYE_CONFIG_TOML_BACKUP} from './utils'
 
 async function run(): Promise<void> {
   const platform = getPlatform()
   const arch = getArch()
   const versionInput = core.getInput('version')
   const checkSum = core.getInput('checksum')
-  const enableCache = core.getInput('enable-cache') == 'true'
+  const enableCache = core.getInput('enable-cache') === 'true'
   const cachePrefix = core.getInput('cache-prefix') || ''
   const githubToken = core.getInput('github-token')
 
   try {
-    if (platform == undefined) {
+    if (platform === undefined) {
       throw new Error(`Unsupported platform: ${process.platform}`)
     }
-    if (arch == undefined) {
+    if (arch === undefined) {
       throw new Error(`Unsupported architecture: ${process.arch}`)
     }
     const setupResult = await setupRye(
@@ -67,7 +68,7 @@ async function setupRye(
   let installedPath: string | undefined
   let downloadPath: string
   let version: string
-  if (versionInput == 'latest') {
+  if (versionInput === 'latest') {
     const result = await downloadLatest(platform, arch, checkSum, githubToken)
     version = result.version
     downloadPath = result.downloadPath
@@ -101,7 +102,7 @@ async function installRye(
   await io.mkdirP(tempDir)
   core.debug(`Created temporary directory ${tempDir}`)
   // Cache first to get the correct path
-  let cachedPath = await tc.cacheDir(tempDir, toolsCacheName, version, arch)
+  const cachedPath = await tc.cacheDir(tempDir, toolsCacheName, version, arch)
   const options: exec.ExecOptions = {
     cwd: cachedPath,
     silent: !core.isDebug(),

@@ -83916,7 +83916,7 @@ function downloadLatest(platform, arch, checkSum, githubToken) {
     return __awaiter(this, void 0, void 0, function* () {
         const binary = `rye-${arch}-${platform}`;
         let downloadUrl = `https://github.com/${utils_1.OWNER}/${utils_1.REPO}/releases/latest/download/${binary}`;
-        if (platform == 'windows') {
+        if (platform === 'windows') {
             downloadUrl += '.exe';
         }
         else {
@@ -83925,7 +83925,7 @@ function downloadLatest(platform, arch, checkSum, githubToken) {
         core.info(`Downloading Rye from "${downloadUrl}" ...`);
         let downloadPath = yield tc.downloadTool(downloadUrl, undefined, githubToken);
         let pathForValidation;
-        if (platform == 'windows') {
+        if (platform === 'windows') {
             // On Windows, the downloaded file is an executable, so we don't need to extract it
             // but the file must has a valid extension for an executable file.
             yield io.mv(downloadPath, `${downloadPath}.exe`);
@@ -84028,7 +84028,7 @@ function downloadVersion(platform, arch, version, checkSum, githubToken) {
     return __awaiter(this, void 0, void 0, function* () {
         const binary = `rye-${arch}-${platform}`;
         let downloadUrl = `https://github.com/${utils_1.OWNER}/${utils_1.REPO}/releases/download/${version}/${binary}`;
-        if (platform == 'windows') {
+        if (platform === 'windows') {
             downloadUrl += '.exe';
         }
         else {
@@ -84037,7 +84037,7 @@ function downloadVersion(platform, arch, version, checkSum, githubToken) {
         core.info(`Downloading Rye from "${downloadUrl}" ...`);
         let downloadPath = yield tc.downloadTool(downloadUrl, undefined, githubToken);
         yield (0, utils_1.validateChecksum)(checkSum, downloadPath, arch, platform, version);
-        if (platform == 'windows') {
+        if (platform === 'windows') {
             // On Windows, the downloaded file is an executable, so we don't need to extract it
             // but the file must has a valid extension for an executable file.
             yield io.mv(downloadPath, `${downloadPath}.exe`);
@@ -84167,7 +84167,7 @@ function doesCachedVenvPathMatchCurrentVenvPath() {
     const ryeVenvPath = `${exports.venvPath}${path_1.default.sep}rye-venv.json`;
     const ryeVenv = JSON.parse(fs.readFileSync(ryeVenvPath, 'utf8'));
     core.info(`Checking if the cached .venv matches the current path: ${exports.venvPath}`);
-    if (ryeVenv.venv_path != exports.venvPath) {
+    if (ryeVenv.venv_path !== exports.venvPath) {
         core.warning(`The .venv in the cache cannot be used because it is from another location: ${ryeVenv.venv_path}`);
         return false;
     }
@@ -84236,21 +84236,20 @@ const download_version_1 = __nccwpck_require__(8841);
 const restore_cache_1 = __nccwpck_require__(744);
 const utils_1 = __nccwpck_require__(1314);
 const download_latest_1 = __nccwpck_require__(5871);
-const utils_2 = __nccwpck_require__(1314);
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         const platform = (0, utils_1.getPlatform)();
         const arch = (0, utils_1.getArch)();
         const versionInput = core.getInput('version');
         const checkSum = core.getInput('checksum');
-        const enableCache = core.getInput('enable-cache') == 'true';
+        const enableCache = core.getInput('enable-cache') === 'true';
         const cachePrefix = core.getInput('cache-prefix') || '';
         const githubToken = core.getInput('github-token');
         try {
-            if (platform == undefined) {
+            if (platform === undefined) {
                 throw new Error(`Unsupported platform: ${process.platform}`);
             }
-            if (arch == undefined) {
+            if (arch === undefined) {
                 throw new Error(`Unsupported architecture: ${process.arch}`);
             }
             const setupResult = yield setupRye(platform, arch, versionInput, checkSum, githubToken);
@@ -84273,7 +84272,7 @@ function setupRye(platform, arch, versionInput, checkSum, githubToken) {
         let installedPath;
         let downloadPath;
         let version;
-        if (versionInput == 'latest') {
+        if (versionInput === 'latest') {
             const result = yield (0, download_latest_1.downloadLatest)(platform, arch, checkSum, githubToken);
             version = result.version;
             downloadPath = result.downloadPath;
@@ -84298,7 +84297,7 @@ function installRye(downloadPath, arch, version) {
         yield io.mkdirP(tempDir);
         core.debug(`Created temporary directory ${tempDir}`);
         // Cache first to get the correct path
-        let cachedPath = yield tc.cacheDir(tempDir, utils_1.toolsCacheName, version, arch);
+        const cachedPath = yield tc.cacheDir(tempDir, utils_1.toolsCacheName, version, arch);
         const options = {
             cwd: cachedPath,
             silent: !core.isDebug(),
@@ -84315,18 +84314,18 @@ function installRye(downloadPath, arch, version) {
 }
 function createConfigBackup(installedPath) {
     return __awaiter(this, void 0, void 0, function* () {
-        if (fs.existsSync(`${installedPath}${path.sep}${utils_2.RYE_CONFIG_TOML}`)) {
-            yield io.cp(`${installedPath}${path.sep}${utils_2.RYE_CONFIG_TOML}`, `${installedPath}${path.sep}${utils_2.RYE_CONFIG_TOML_BACKUP}`);
-            core.info(`Backed up ${installedPath}${path.sep}${utils_2.RYE_CONFIG_TOML}`);
+        if (fs.existsSync(`${installedPath}${path.sep}${utils_1.RYE_CONFIG_TOML}`)) {
+            yield io.cp(`${installedPath}${path.sep}${utils_1.RYE_CONFIG_TOML}`, `${installedPath}${path.sep}${utils_1.RYE_CONFIG_TOML_BACKUP}`);
+            core.info(`Backed up ${installedPath}${path.sep}${utils_1.RYE_CONFIG_TOML}`);
         }
     });
 }
 function ensureCleanConfig(installedPath) {
     return __awaiter(this, void 0, void 0, function* () {
-        if (fs.existsSync(`${installedPath}${path.sep}${utils_2.RYE_CONFIG_TOML_BACKUP}`)) {
-            yield io.rmRF(`${installedPath}${path.sep}${utils_2.RYE_CONFIG_TOML}`);
-            yield io.cp(`${installedPath}${path.sep}${utils_2.RYE_CONFIG_TOML_BACKUP}`, `${installedPath}${path.sep}${utils_2.RYE_CONFIG_TOML}`);
-            core.info(`Restored clean ${utils_2.RYE_CONFIG_TOML} from ${installedPath}${path.sep}${utils_2.RYE_CONFIG_TOML_BACKUP}`);
+        if (fs.existsSync(`${installedPath}${path.sep}${utils_1.RYE_CONFIG_TOML_BACKUP}`)) {
+            yield io.rmRF(`${installedPath}${path.sep}${utils_1.RYE_CONFIG_TOML}`);
+            yield io.cp(`${installedPath}${path.sep}${utils_1.RYE_CONFIG_TOML_BACKUP}`, `${installedPath}${path.sep}${utils_1.RYE_CONFIG_TOML}`);
+            core.info(`Restored clean ${utils_1.RYE_CONFIG_TOML} from ${installedPath}${path.sep}${utils_1.RYE_CONFIG_TOML_BACKUP}`);
         }
     });
 }
@@ -84419,7 +84418,7 @@ var ComparisonResult;
 function validateChecksum(checkSum, downloadPath, arch, platform, version) {
     return __awaiter(this, void 0, void 0, function* () {
         let isValid = true;
-        if (checkSum != undefined && checkSum != '') {
+        if (checkSum !== undefined && checkSum !== '') {
             isValid = yield validateFileCheckSum(downloadPath, checkSum);
         }
         else {
@@ -84474,7 +84473,7 @@ function validateFileCheckSum(filePath, expected) {
             stream.on('data', chunk => hash.update(chunk));
             stream.on('end', () => {
                 const actual = hash.digest('hex');
-                resolve(actual == expected);
+                resolve(actual === expected);
             });
         });
     });
@@ -84501,13 +84500,13 @@ exports.getArch = getArch;
 function getPlatform() {
     const platform = process.platform;
     core.debug(`Platform: ${platform}`);
-    if (platform == 'linux') {
+    if (platform === 'linux') {
         return 'linux';
     }
-    else if (platform == 'darwin') {
+    else if (platform === 'darwin') {
         return 'macos';
     }
-    else if (platform == 'win32') {
+    else if (platform === 'win32') {
         return 'windows';
     }
 }

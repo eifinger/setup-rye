@@ -32991,7 +32991,7 @@ function updateDefaultVersion(filePath, latestVersion) {
             input: fileStream
         });
         let foundDescription = false;
-        let lines = [];
+        const lines = [];
         try {
             for (var _d = true, rl_1 = __asyncValues(rl), rl_1_1; rl_1_1 = yield rl_1.next(), _a = rl_1_1.done, !_a; _d = true) {
                 _c = rl_1_1.value;
@@ -33106,7 +33106,7 @@ var ComparisonResult;
 function validateChecksum(checkSum, downloadPath, arch, platform, version) {
     return __awaiter(this, void 0, void 0, function* () {
         let isValid = true;
-        if (checkSum != undefined && checkSum != '') {
+        if (checkSum !== undefined && checkSum !== '') {
             isValid = yield validateFileCheckSum(downloadPath, checkSum);
         }
         else {
@@ -33161,7 +33161,7 @@ function validateFileCheckSum(filePath, expected) {
             stream.on('data', chunk => hash.update(chunk));
             stream.on('end', () => {
                 const actual = hash.digest('hex');
-                resolve(actual == expected);
+                resolve(actual === expected);
             });
         });
     });
@@ -33188,13 +33188,13 @@ exports.getArch = getArch;
 function getPlatform() {
     const platform = process.platform;
     core.debug(`Platform: ${platform}`);
-    if (platform == 'linux') {
+    if (platform === 'linux') {
         return 'linux';
     }
-    else if (platform == 'darwin') {
+    else if (platform === 'darwin') {
         return 'macos';
     }
-    else if (platform == 'win32') {
+    else if (platform === 'win32') {
         return 'windows';
     }
 }

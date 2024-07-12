@@ -8,7 +8,7 @@ import {
   venvPath
 } from './restore-cache'
 
-const enableCache = core.getInput('enable-cache') == 'true'
+const enableCache = core.getInput('enable-cache') === 'true'
 const cacheLocalStoragePath =
   `${core.getInput('cache-local-storage-path')}` || ''
 
@@ -31,7 +31,7 @@ async function saveCache(): Promise<void> {
   if (!cacheKey) {
     core.warning('Error retrieving cache key from state.')
     return
-  } else if (matchedKey == cacheKey) {
+  } else if (matchedKey === cacheKey) {
     // no change in target directories
     core.info(`Cache hit occurred on key ${cacheKey}, not saving .venv.`)
     return

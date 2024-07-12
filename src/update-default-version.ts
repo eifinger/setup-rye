@@ -64,7 +64,7 @@ async function updateDefaultVersion(
   })
 
   let foundDescription = false
-  let lines = []
+  const lines = []
 
   for await (let line of rl) {
     if (

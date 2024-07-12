@@ -83084,7 +83084,7 @@ function doesCachedVenvPathMatchCurrentVenvPath() {
     const ryeVenvPath = `${exports.venvPath}${path_1.default.sep}rye-venv.json`;
     const ryeVenv = JSON.parse(fs.readFileSync(ryeVenvPath, 'utf8'));
     core.info(`Checking if the cached .venv matches the current path: ${exports.venvPath}`);
-    if (ryeVenv.venv_path != exports.venvPath) {
+    if (ryeVenv.venv_path !== exports.venvPath) {
         core.warning(`The .venv in the cache cannot be used because it is from another location: ${ryeVenv.venv_path}`);
         return false;
     }
@@ -83152,7 +83152,7 @@ const core = __importStar(__nccwpck_require__(2186));
 const io = __importStar(__nccwpck_require__(7436));
 const path_1 = __importDefault(__nccwpck_require__(1017));
 const restore_cache_1 = __nccwpck_require__(744);
-const enableCache = core.getInput('enable-cache') == 'true';
+const enableCache = core.getInput('enable-cache') === 'true';
 const cacheLocalStoragePath = `${core.getInput('cache-local-storage-path')}` || '';
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
@@ -83177,7 +83177,7 @@ function saveCache() {
             core.warning('Error retrieving cache key from state.');
             return;
         }
-        else if (matchedKey == cacheKey) {
+        else if (matchedKey === cacheKey) {
             // no change in target directories
             core.info(`Cache hit occurred on key ${cacheKey}, not saving .venv.`);
             return;
@@ -83271,7 +83271,7 @@ var ComparisonResult;
 function validateChecksum(checkSum, downloadPath, arch, platform, version) {
     return __awaiter(this, void 0, void 0, function* () {
         let isValid = true;
-        if (checkSum != undefined && checkSum != '') {
+        if (checkSum !== undefined && checkSum !== '') {
             isValid = yield validateFileCheckSum(downloadPath, checkSum);
         }
         else {
@@ -83326,7 +83326,7 @@ function validateFileCheckSum(filePath, expected) {
             stream.on('data', chunk => hash.update(chunk));
             stream.on('end', () => {
                 const actual = hash.digest('hex');
-                resolve(actual == expected);
+                resolve(actual === expected);
             });
         });
     });
@@ -83353,13 +83353,13 @@ exports.getArch = getArch;
 function getPlatform() {
     const platform = process.platform;
     core.debug(`Platform: ${platform}`);
-    if (platform == 'linux') {
+    if (platform === 'linux') {
         return 'linux';
     }
-    else if (platform == 'darwin') {
+    else if (platform === 'darwin') {
         return 'macos';
     }
-    else if (platform == 'win32') {
+    else if (platform === 'win32') {
         return 'windows';
     }
 }

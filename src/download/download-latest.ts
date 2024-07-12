@@ -19,7 +19,7 @@ export async function downloadLatest(
 ): Promise<{downloadPath: string; version: string}> {
   const binary = `rye-${arch}-${platform}`
   let downloadUrl = `https://github.com/${OWNER}/${REPO}/releases/latest/download/${binary}`
-  if (platform == 'windows') {
+  if (platform === 'windows') {
     downloadUrl += '.exe'
   } else {
     downloadUrl += '.gz'
@@ -28,7 +28,7 @@ export async function downloadLatest(
 
   let downloadPath = await tc.downloadTool(downloadUrl, undefined, githubToken)
   let pathForValidation: string
-  if (platform == 'windows') {
+  if (platform === 'windows') {
     // On Windows, the downloaded file is an executable, so we don't need to extract it
     // but the file must has a valid extension for an executable file.
     await io.mv(downloadPath, `${downloadPath}.exe`)
