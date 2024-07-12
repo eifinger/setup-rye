@@ -2,26 +2,43 @@ import * as core from '@actions/core'
 import * as tc from '@actions/tool-cache'
 import * as io from '@actions/io'
 import * as exec from '@actions/exec'
-import {Architecture, OWNER, REPO, extract, validateChecksum} from '../utils'
+import {
+  Architecture,
+  OWNER,
+  Platform,
+  REPO,
+  extract,
+  validateChecksum
+} from '../utils'
 
 export async function downloadLatest(
-  platform: string,
+  platform: Platform,
   arch: Architecture,
   checkSum: string | undefined,
   githubToken: string | undefined
 ): Promise<{downloadPath: string; version: string}> {
   const binary = `rye-${arch}-${platform}`
-  const downloadUrl = `https://github.com/${OWNER}/${REPO}/releases/latest/download/${binary}.gz`
+  let downloadUrl = `https://github.com/${OWNER}/${REPO}/releases/latest/download/${binary}`
+  if (platform === 'windows') {
+    downloadUrl += '.exe'
+  } else {
+    downloadUrl += '.gz'
+  }
   core.info(`Downloading Rye from "${downloadUrl}" ...`)
 
-  const downloadPath = await tc.downloadTool(
-    downloadUrl,
-    undefined,
-    githubToken
-  )
-  const pathForValidation = `${downloadPath}_for_validation.gz`
-  await io.cp(downloadPath, pathForValidation)
-  await extract(downloadPath)
+  let downloadPath = await tc.downloadTool(downloadUrl, undefined, githubToken)
+  let pathForValidation: string
+  if (platform === 'windows') {
+    // On Windows, the downloaded file is an executable, so we don't need to extract it
+    // but the file must has a valid extension for an executable file.
+    await io.mv(downloadPath, `${downloadPath}.exe`)
+    downloadPath = `${downloadPath}.exe`
+    pathForValidation = downloadPath
+  } else {
+    pathForValidation = `${downloadPath}_for_validation.gz`
+    await io.cp(downloadPath, pathForValidation)
+    await extract(downloadPath)
+  }
   const version = await getVersion(downloadPath)
   await validateChecksum(checkSum, pathForValidation, arch, platform, version)
 

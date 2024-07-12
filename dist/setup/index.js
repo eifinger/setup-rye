@@ -83915,12 +83915,28 @@ const utils_1 = __nccwpck_require__(1314);
 function downloadLatest(platform, arch, checkSum, githubToken) {
     return __awaiter(this, void 0, void 0, function* () {
         const binary = `rye-${arch}-${platform}`;
-        const downloadUrl = `https://github.com/${utils_1.OWNER}/${utils_1.REPO}/releases/latest/download/${binary}.gz`;
+        let downloadUrl = `https://github.com/${utils_1.OWNER}/${utils_1.REPO}/releases/latest/download/${binary}`;
+        if (platform === 'windows') {
+            downloadUrl += '.exe';
+        }
+        else {
+            downloadUrl += '.gz';
+        }
         core.info(`Downloading Rye from "${downloadUrl}" ...`);
-        const downloadPath = yield tc.downloadTool(downloadUrl, undefined, githubToken);
-        const pathForValidation = `${downloadPath}_for_validation.gz`;
-        yield io.cp(downloadPath, pathForValidation);
-        yield (0, utils_1.extract)(downloadPath);
+        let downloadPath = yield tc.downloadTool(downloadUrl, undefined, githubToken);
+        let pathForValidation;
+        if (platform === 'windows') {
+            // On Windows, the downloaded file is an executable, so we don't need to extract it
+            // but the file must has a valid extension for an executable file.
+            yield io.mv(downloadPath, `${downloadPath}.exe`);
+            downloadPath = `${downloadPath}.exe`;
+            pathForValidation = downloadPath;
+        }
+        else {
+            pathForValidation = `${downloadPath}_for_validation.gz`;
+            yield io.cp(downloadPath, pathForValidation);
+            yield (0, utils_1.extract)(downloadPath);
+        }
         const version = yield getVersion(downloadPath);
         yield (0, utils_1.validateChecksum)(checkSum, pathForValidation, arch, platform, version);
         return { downloadPath, version };
@@ -83999,6 +84015,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.downloadVersion = exports.tryGetFromCache = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const tc = __importStar(__nccwpck_require__(7784));
+const io = __importStar(__nccwpck_require__(7436));
 const utils_1 = __nccwpck_require__(1314);
 function tryGetFromCache(arch, version) {
     core.debug(`Trying to get rye from tool cache for ${version}...`);
@@ -84010,11 +84027,25 @@ exports.tryGetFromCache = tryGetFromCache;
 function downloadVersion(platform, arch, version, checkSum, githubToken) {
     return __awaiter(this, void 0, void 0, function* () {
         const binary = `rye-${arch}-${platform}`;
-        const downloadUrl = `https://github.com/${utils_1.OWNER}/${utils_1.REPO}/releases/download/${version}/${binary}.gz`;
+        let downloadUrl = `https://github.com/${utils_1.OWNER}/${utils_1.REPO}/releases/download/${version}/${binary}`;
+        if (platform === 'windows') {
+            downloadUrl += '.exe';
+        }
+        else {
+            downloadUrl += '.gz';
+        }
         core.info(`Downloading Rye from "${downloadUrl}" ...`);
-        const downloadPath = yield tc.downloadTool(downloadUrl, undefined, githubToken);
+        let downloadPath = yield tc.downloadTool(downloadUrl, undefined, githubToken);
         yield (0, utils_1.validateChecksum)(checkSum, downloadPath, arch, platform, version);
-        yield (0, utils_1.extract)(downloadPath);
+        if (platform === 'windows') {
+            // On Windows, the downloaded file is an executable, so we don't need to extract it
+            // but the file must has a valid extension for an executable file.
+            yield io.mv(downloadPath, `${downloadPath}.exe`);
+            downloadPath = `${downloadPath}.exe`;
+        }
+        else {
+            yield (0, utils_1.extract)(downloadPath);
+        }
         return downloadPath;
     });
 }
@@ -84060,6 +84091,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.restoreCache = exports.venvPath = exports.workingDir = exports.workingDirInput = exports.STATE_CACHE_MATCHED_KEY = exports.STATE_CACHE_KEY = void 0;
 const crypto = __importStar(__nccwpck_require__(6113));
@@ -84067,17 +84101,18 @@ const cache = __importStar(__nccwpck_require__(7799));
 const glob = __importStar(__nccwpck_require__(8090));
 const core = __importStar(__nccwpck_require__(2186));
 const fs = __importStar(__nccwpck_require__(7147));
+const path_1 = __importDefault(__nccwpck_require__(1017));
 const io_1 = __nccwpck_require__(7436);
 const io_util_1 = __nccwpck_require__(1962);
 const utils_1 = __nccwpck_require__(1314);
 exports.STATE_CACHE_KEY = 'cache-key';
 exports.STATE_CACHE_MATCHED_KEY = 'cache-matched-key';
 exports.workingDirInput = core.getInput('working-directory');
-exports.workingDir = exports.workingDirInput ? `/${exports.workingDirInput}` : '';
-exports.venvPath = `${process.env['GITHUB_WORKSPACE']}${exports.workingDir}/.venv`;
+exports.workingDir = exports.workingDirInput ? `${path_1.default.sep}${exports.workingDirInput}` : '';
+exports.venvPath = `${process.env['GITHUB_WORKSPACE']}${exports.workingDir}${path_1.default.sep}.venv`;
 const CACHE_VERSION = '5';
 const cacheLocalStoragePath = `${core.getInput('cache-local-storage-path')}` || '';
-const cacheDependencyPath = `${process.env['GITHUB_WORKSPACE']}${exports.workingDir}/requirements**.lock`;
+const cacheDependencyPath = `${process.env['GITHUB_WORKSPACE']}${exports.workingDir}${path_1.default.sep}${path_1.default.sep}requirements**.lock`;
 function restoreCache(cachePrefix, version) {
     return __awaiter(this, void 0, void 0, function* () {
         const cacheKey = yield computeKeys(cachePrefix, version);
@@ -84129,10 +84164,10 @@ function handleMatchResult(matchedKey, primaryKey) {
     core.setOutput('cache-hit', true);
 }
 function doesCachedVenvPathMatchCurrentVenvPath() {
-    const ryeVenvPath = `${exports.venvPath}/rye-venv.json`;
+    const ryeVenvPath = `${exports.venvPath}${path_1.default.sep}rye-venv.json`;
     const ryeVenv = JSON.parse(fs.readFileSync(ryeVenvPath, 'utf8'));
     core.info(`Checking if the cached .venv matches the current path: ${exports.venvPath}`);
-    if (ryeVenv.venv_path != exports.venvPath) {
+    if (ryeVenv.venv_path !== exports.venvPath) {
         core.warning(`The .venv in the cache cannot be used because it is from another location: ${ryeVenv.venv_path}`);
         return false;
     }
@@ -84140,9 +84175,9 @@ function doesCachedVenvPathMatchCurrentVenvPath() {
 }
 function restoreCacheLocal(primaryKey) {
     return __awaiter(this, void 0, void 0, function* () {
-        const storedCache = `${cacheLocalStoragePath}/${primaryKey}`;
+        const storedCache = `${cacheLocalStoragePath}${path_1.default.sep}${primaryKey}`;
         if (yield (0, io_util_1.exists)(storedCache)) {
-            yield (0, io_1.cp)(`${storedCache}/.venv`, exports.venvPath, {
+            yield (0, io_1.cp)(`${storedCache}${path_1.default.sep}.venv`, exports.venvPath, {
                 recursive: true
             });
             return primaryKey;
@@ -84201,10 +84236,9 @@ const download_version_1 = __nccwpck_require__(8841);
 const restore_cache_1 = __nccwpck_require__(744);
 const utils_1 = __nccwpck_require__(1314);
 const download_latest_1 = __nccwpck_require__(5871);
-const utils_2 = __nccwpck_require__(1314);
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
-        const platform = utils_1.IS_MAC ? 'macos' : 'linux';
+        const platform = (0, utils_1.getPlatform)();
         const arch = (0, utils_1.getArch)();
         const versionInput = core.getInput('version');
         const checkSum = core.getInput('checksum');
@@ -84212,6 +84246,9 @@ function run() {
         const cachePrefix = core.getInput('cache-prefix') || '';
         const githubToken = core.getInput('github-token');
         try {
+            if (platform === undefined) {
+                throw new Error(`Unsupported platform: ${process.platform}`);
+            }
             if (arch === undefined) {
                 throw new Error(`Unsupported architecture: ${process.arch}`);
             }
@@ -84260,7 +84297,7 @@ function installRye(downloadPath, arch, version) {
         yield io.mkdirP(tempDir);
         core.debug(`Created temporary directory ${tempDir}`);
         // Cache first to get the correct path
-        let cachedPath = yield tc.cacheDir(tempDir, utils_1.toolsCacheName, version, arch);
+        const cachedPath = yield tc.cacheDir(tempDir, utils_1.toolsCacheName, version, arch);
         const options = {
             cwd: cachedPath,
             silent: !core.isDebug(),
@@ -84277,18 +84314,18 @@ function installRye(downloadPath, arch, version) {
 }
 function createConfigBackup(installedPath) {
     return __awaiter(this, void 0, void 0, function* () {
-        if (fs.existsSync(`${installedPath}/${utils_2.RYE_CONFIG_TOML}`)) {
-            yield io.cp(`${installedPath}/${utils_2.RYE_CONFIG_TOML}`, `${installedPath}/${utils_2.RYE_CONFIG_TOML_BACKUP}`);
-            core.info(`Backed up ${installedPath}/${utils_2.RYE_CONFIG_TOML}`);
+        if (fs.existsSync(`${installedPath}${path.sep}${utils_1.RYE_CONFIG_TOML}`)) {
+            yield io.cp(`${installedPath}${path.sep}${utils_1.RYE_CONFIG_TOML}`, `${installedPath}${path.sep}${utils_1.RYE_CONFIG_TOML_BACKUP}`);
+            core.info(`Backed up ${installedPath}${path.sep}${utils_1.RYE_CONFIG_TOML}`);
         }
     });
 }
 function ensureCleanConfig(installedPath) {
     return __awaiter(this, void 0, void 0, function* () {
-        if (fs.existsSync(`${installedPath}/${utils_2.RYE_CONFIG_TOML_BACKUP}`)) {
-            yield io.rmRF(`${installedPath}/${utils_2.RYE_CONFIG_TOML}`);
-            yield io.cp(`${installedPath}/${utils_2.RYE_CONFIG_TOML_BACKUP}`, `${installedPath}/${utils_2.RYE_CONFIG_TOML}`);
-            core.info(`Restored clean ${utils_2.RYE_CONFIG_TOML} from ${installedPath}/${utils_2.RYE_CONFIG_TOML_BACKUP}`);
+        if (fs.existsSync(`${installedPath}${path.sep}${utils_1.RYE_CONFIG_TOML_BACKUP}`)) {
+            yield io.rmRF(`${installedPath}${path.sep}${utils_1.RYE_CONFIG_TOML}`);
+            yield io.cp(`${installedPath}${path.sep}${utils_1.RYE_CONFIG_TOML_BACKUP}`, `${installedPath}${path.sep}${utils_1.RYE_CONFIG_TOML}`);
+            core.info(`Restored clean ${utils_1.RYE_CONFIG_TOML} from ${installedPath}${path.sep}${utils_1.RYE_CONFIG_TOML_BACKUP}`);
         }
     });
 }
@@ -84299,13 +84336,13 @@ function setVersion(version) {
     core.setOutput('rye-version', version);
 }
 function addRyeToPath(cachedPath) {
-    core.addPath(`${cachedPath}/shims`);
-    core.info(`Added ${cachedPath}/shims to the path`);
+    core.addPath(`${cachedPath}${path.sep}shims`);
+    core.info(`Added ${cachedPath}${path.sep}shims to the path`);
     core.exportVariable('RYE_HOME', cachedPath);
     core.info(`Set RYE_HOME to ${cachedPath}`);
 }
 function addMatchers() {
-    const matchersPath = path.join(__dirname, '../..', '.github');
+    const matchersPath = path.join(__dirname, `..${path.sep}..`, '.github');
     core.info(`##[add-matcher]${path.join(matchersPath, 'python.json')}`);
 }
 run();
@@ -84351,16 +84388,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getArch = exports.isknownVersion = exports.validateFileCheckSum = exports.compareVersions = exports.extract = exports.validateChecksum = exports.ComparisonResult = exports.VERSIONS_WHICH_MODIFY_PROFILE = exports.EARLIEST_VERSION_WITH_NO_MODIFY_PATHSUPPORT = exports.RYE_CONFIG_TOML = exports.RYE_CONFIG_TOML_BACKUP = exports.toolsCacheName = exports.OWNER = exports.REPO = exports.WINDOWS_PLATFORMS = exports.WINDOWS_ARCHS = exports.IS_MAC = exports.IS_LINUX = exports.IS_WINDOWS = void 0;
+exports.getPlatform = exports.getArch = exports.isknownVersion = exports.validateFileCheckSum = exports.compareVersions = exports.extract = exports.validateChecksum = exports.ComparisonResult = exports.VERSIONS_WHICH_MODIFY_PROFILE = exports.EARLIEST_VERSION_WITH_NO_MODIFY_PATHSUPPORT = exports.RYE_CONFIG_TOML = exports.RYE_CONFIG_TOML_BACKUP = exports.toolsCacheName = exports.OWNER = exports.REPO = exports.WINDOWS_PLATFORMS = exports.WINDOWS_ARCHS = void 0;
 const fs = __importStar(__nccwpck_require__(7147));
 const crypto = __importStar(__nccwpck_require__(6113));
 const io = __importStar(__nccwpck_require__(7436));
 const core = __importStar(__nccwpck_require__(2186));
 const exec = __importStar(__nccwpck_require__(1514));
 const checksums_1 = __nccwpck_require__(1541);
-exports.IS_WINDOWS = process.platform === 'win32';
-exports.IS_LINUX = process.platform === 'linux';
-exports.IS_MAC = process.platform === 'darwin';
 exports.WINDOWS_ARCHS = ['x86', 'x64'];
 exports.WINDOWS_PLATFORMS = ['win32', 'win64'];
 exports.REPO = 'rye';
@@ -84452,6 +84486,7 @@ function isknownVersion(version) {
 exports.isknownVersion = isknownVersion;
 function getArch() {
     const arch = process.arch;
+    core.debug(`Arch: ${arch}`);
     const archMapping = {
         ia32: 'x86',
         x64: 'x86_64',
@@ -84462,6 +84497,20 @@ function getArch() {
     }
 }
 exports.getArch = getArch;
+function getPlatform() {
+    const platform = process.platform;
+    core.debug(`Platform: ${platform}`);
+    if (platform === 'linux') {
+        return 'linux';
+    }
+    else if (platform === 'darwin') {
+        return 'macos';
+    }
+    else if (platform === 'win32') {
+        return 'windows';
+    }
+}
+exports.getPlatform = getPlatform;
 
 
 /***/ }),

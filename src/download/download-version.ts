@@ -1,8 +1,10 @@
 import * as core from '@actions/core'
 import * as tc from '@actions/tool-cache'
+import * as io from '@actions/io'
 import {
   Architecture,
   OWNER,
+  Platform,
   REPO,
   extract,
   toolsCacheName,
@@ -20,23 +22,31 @@ export function tryGetFromCache(
 }
 
 export async function downloadVersion(
-  platform: string,
+  platform: Platform,
   arch: Architecture,
   version: string,
   checkSum: string | undefined,
   githubToken: string | undefined
 ): Promise<string> {
   const binary = `rye-${arch}-${platform}`
-  const downloadUrl = `https://github.com/${OWNER}/${REPO}/releases/download/${version}/${binary}.gz`
+  let downloadUrl = `https://github.com/${OWNER}/${REPO}/releases/download/${version}/${binary}`
+  if (platform === 'windows') {
+    downloadUrl += '.exe'
+  } else {
+    downloadUrl += '.gz'
+  }
   core.info(`Downloading Rye from "${downloadUrl}" ...`)
 
-  const downloadPath = await tc.downloadTool(
-    downloadUrl,
-    undefined,
-    githubToken
-  )
+  let downloadPath = await tc.downloadTool(downloadUrl, undefined, githubToken)
   await validateChecksum(checkSum, downloadPath, arch, platform, version)
 
-  await extract(downloadPath)
+  if (platform === 'windows') {
+    // On Windows, the downloaded file is an executable, so we don't need to extract it
+    // but the file must has a valid extension for an executable file.
+    await io.mv(downloadPath, `${downloadPath}.exe`)
+    downloadPath = `${downloadPath}.exe`
+  } else {
+    await extract(downloadPath)
+  }
   return downloadPath
 }
