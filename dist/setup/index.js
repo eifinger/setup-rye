@@ -84109,7 +84109,7 @@ exports.STATE_CACHE_KEY = 'cache-key';
 exports.STATE_CACHE_MATCHED_KEY = 'cache-matched-key';
 exports.workingDirInput = core.getInput('working-directory');
 exports.workingDir = exports.workingDirInput ? `/${exports.workingDirInput}` : '';
-exports.venvPath = `${process.env['GITHUB_WORKSPACE']}${exports.workingDir}/.venv`;
+exports.venvPath = `${process.env['GITHUB_WORKSPACE']}${exports.workingDir}${path_1.default.sep}.venv`;
 const CACHE_VERSION = '5';
 const cacheLocalStoragePath = `${core.getInput('cache-local-storage-path')}` || '';
 const cacheDependencyPath = `${process.env['GITHUB_WORKSPACE']}${exports.workingDir}/requirements**.lock`;
@@ -84166,12 +84166,9 @@ function handleMatchResult(matchedKey, primaryKey) {
 function doesCachedVenvPathMatchCurrentVenvPath() {
     const ryeVenvPath = `${exports.venvPath}/rye-venv.json`;
     const ryeVenv = JSON.parse(fs.readFileSync(ryeVenvPath, 'utf8'));
-    // Use path.normalize and path.resolve to ensure consistent path formatting
-    const normalizedVenvPath = path_1.default.normalize(ryeVenv.venv_path);
-    const resolvedVenvPath = path_1.default.resolve(exports.venvPath);
-    core.info(`Checking if the cached .venv matches the current path: ${resolvedVenvPath}`);
-    if (normalizedVenvPath != resolvedVenvPath) {
-        core.warning(`The .venv in the cache cannot be used because it is from another location: ${normalizedVenvPath}`);
+    core.info(`Checking if the cached .venv matches the current path: ${exports.venvPath}`);
+    if (ryeVenv.venv_path != exports.venvPath) {
+        core.warning(`The .venv in the cache cannot be used because it is from another location: ${ryeVenv.venv_path}`);
         return false;
     }
     return true;

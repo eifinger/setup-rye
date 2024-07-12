@@ -12,7 +12,7 @@ export const STATE_CACHE_KEY = 'cache-key'
 export const STATE_CACHE_MATCHED_KEY = 'cache-matched-key'
 export const workingDirInput = core.getInput('working-directory')
 export const workingDir = workingDirInput ? `/${workingDirInput}` : ''
-export const venvPath = `${process.env['GITHUB_WORKSPACE']}${workingDir}/.venv`
+export const venvPath = `${process.env['GITHUB_WORKSPACE']}${workingDir}${path.sep}.venv`
 const CACHE_VERSION = '5'
 const cacheLocalStoragePath =
   `${core.getInput('cache-local-storage-path')}` || ''
@@ -88,17 +88,12 @@ function handleMatchResult(
 function doesCachedVenvPathMatchCurrentVenvPath(): boolean {
   const ryeVenvPath = `${venvPath}/rye-venv.json`
   const ryeVenv = JSON.parse(fs.readFileSync(ryeVenvPath, 'utf8'))
-
-  // Use path.normalize and path.resolve to ensure consistent path formatting
-  const normalizedVenvPath = path.normalize(ryeVenv.venv_path)
-  const resolvedVenvPath = path.resolve(venvPath)
-
   core.info(
-    `Checking if the cached .venv matches the current path: ${resolvedVenvPath}`
+    `Checking if the cached .venv matches the current path: ${venvPath}`
   )
-  if (normalizedVenvPath != resolvedVenvPath) {
+  if (ryeVenv.venv_path != venvPath) {
     core.warning(
-      `The .venv in the cache cannot be used because it is from another location: ${normalizedVenvPath}`
+      `The .venv in the cache cannot be used because it is from another location: ${ryeVenv.venv_path}`
     )
     return false
   }
