@@ -53,3 +53,34 @@ jobs:
           version: latest
       - run: rye sync
         working-directory: __tests__/fixtures/rye-project
+
+  test-latest-automatic-toolchain:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, macos-14, oracle-aarch64]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Determine expected python version
+        id: determine-expected-python-version
+        run: |
+          EXPECTED_PYTHON_VERSION=$(cat .python-version)
+          echo "EXPECTED_PYTHON_VERSION=$EXPECTED_PYTHON_VERSION" >> "$GITHUB_OUTPUT"
+        working-directory: __tests__/fixtures/rye-project
+      - name: Setup rye
+        uses: ./
+        with:
+          version: latest
+          working-directory: __tests__/fixtures/rye-project
+      - run: rye sync
+        working-directory: __tests__/fixtures/rye-project
+      - name: Check python version
+        run: |
+          ACTUAL_PYTHON_VERSION=$(ls $RYE_HOME/py)
+          if [ "$ACTUAL_PYTHON_VERSION" != "$EXPECTED_PYTHON_VERSION" ];
+          then
+            echo "$ACTUAL_PYTHON_VERSION is not the same as $EXPECTED_PYTHON_VERSION"
+            exit 1
+          fi
+        env:
+          EXPECTED_PYTHON_VERSION: ${{ steps.determine-expected-python-version.outputs.EXPECTED_PYTHON_VERSION }}

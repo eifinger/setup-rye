@@ -5,7 +5,7 @@ import * as io from '@actions/io'
 import * as path from 'path'
 import * as fs from 'fs'
 import {downloadVersion, tryGetFromCache} from './download/download-version'
-import {restoreCache} from './restore-cache'
+import {restoreCache, WORKING_DIR_PATH} from './restore-cache'
 import {
   Architecture,
   EARLIEST_VERSION_WITH_NO_MODIFY_PATHSUPPORT,
@@ -103,13 +103,18 @@ async function installRye(
   core.debug(`Created temporary directory ${tempDir}`)
   // Cache first to get the correct path
   const cachedPath = await tc.cacheDir(tempDir, toolsCacheName, version, arch)
+  const toolchainVersion = await determineToolchainVersion()
+  const env = toolchainVersion
+    ? {
+        ...process.env,
+        RYE_HOME: cachedPath,
+        RYE_TOOLCHAIN_VERSION: toolchainVersion
+      }
+    : {...process.env, RYE_HOME: cachedPath}
   const options: exec.ExecOptions = {
     cwd: cachedPath,
     silent: !core.isDebug(),
-    env: {
-      ...process.env,
-      RYE_HOME: cachedPath
-    }
+    env: env
   }
   core.info(`Installing Rye into ${cachedPath}`)
   const execArgs = ['self', 'install', '--yes']
@@ -120,6 +125,22 @@ async function installRye(
   }
   await exec.exec(downloadPath, execArgs, options)
   return cachedPath
+}
+
+async function determineToolchainVersion(): Promise<string | void> {
+  const pythonVersionFile = `${WORKING_DIR_PATH}${path.sep}.python-version`
+  if (fs.existsSync(pythonVersionFile)) {
+    const toolchainVersion = await fs.promises.readFile(
+      pythonVersionFile,
+      'utf8'
+    )
+    core.info(`Determined RYE_TOOLCHAIN_VERSION: ${toolchainVersion.trim()}`)
+    return toolchainVersion.trim()
+  }
+  core.warning(
+    `No .python-version file found, using default RYE_TOOLCHAIN_VERSION`
+  )
+  return
 }
 
 async function createConfigBackup(installedPath: string): Promise<void> {

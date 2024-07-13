@@ -5,7 +5,7 @@ import path from 'path'
 import {
   STATE_CACHE_MATCHED_KEY,
   STATE_CACHE_KEY,
-  venvPath
+  VENV_PATH
 } from './restore-cache'
 
 const enableCache = core.getInput('enable-cache') === 'true'
@@ -36,10 +36,10 @@ async function saveCache(): Promise<void> {
     core.info(`Cache hit occurred on key ${cacheKey}, not saving .venv.`)
     return
   }
-  core.info(`Saving .venv path: ${venvPath}`)
+  core.info(`Saving .venv path: ${VENV_PATH}`)
   cacheLocalStoragePath
     ? await saveCacheLocal(cacheKey)
-    : await cache.saveCache([venvPath], cacheKey)
+    : await cache.saveCache([VENV_PATH], cacheKey)
 
   core.info(`.venv saved with the key: ${cacheKey}`)
 }
@@ -47,7 +47,7 @@ async function saveCache(): Promise<void> {
 async function saveCacheLocal(cacheKey: string): Promise<void> {
   const targetPath = `${cacheLocalStoragePath}${path.sep}${cacheKey}`
   await io.mkdirP(targetPath)
-  await io.cp(venvPath, `${targetPath}${path.sep}.venv`, {
+  await io.cp(VENV_PATH, `${targetPath}${path.sep}.venv`, {
     recursive: true
   })
 }

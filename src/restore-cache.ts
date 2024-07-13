@@ -10,9 +10,10 @@ import {getArch} from './utils'
 
 export const STATE_CACHE_KEY = 'cache-key'
 export const STATE_CACHE_MATCHED_KEY = 'cache-matched-key'
-export const workingDirInput = core.getInput('working-directory')
-export const workingDir = workingDirInput ? `${path.sep}${workingDirInput}` : ''
-export const venvPath = `${process.env['GITHUB_WORKSPACE']}${workingDir}${path.sep}.venv`
+const workingDirInput = core.getInput('working-directory')
+const workingDir = workingDirInput ? `${path.sep}${workingDirInput}` : ''
+export const WORKING_DIR_PATH = `${process.env['GITHUB_WORKSPACE']}${workingDir}`
+export const VENV_PATH = `${process.env['GITHUB_WORKSPACE']}${workingDir}${path.sep}.venv`
 const CACHE_VERSION = '5'
 const cacheLocalStoragePath =
   `${core.getInput('cache-local-storage-path')}` || ''
@@ -34,7 +35,7 @@ export async function restoreCache(
   try {
     matchedKey = cacheLocalStoragePath
       ? await restoreCacheLocal(cacheKey)
-      : await cache.restoreCache([venvPath], cacheKey)
+      : await cache.restoreCache([VENV_PATH], cacheKey)
   } catch (err) {
     const message = (err as Error).message
     core.warning(message)
@@ -73,7 +74,7 @@ function handleMatchResult(
 
   const venvPathMatch = doesCachedVenvPathMatchCurrentVenvPath()
   if (!venvPathMatch) {
-    fs.rmSync(venvPath, {recursive: true})
+    fs.rmSync(VENV_PATH, {recursive: true})
     core.setOutput('cache-hit', false)
     return
   }
@@ -86,12 +87,12 @@ function handleMatchResult(
 }
 
 function doesCachedVenvPathMatchCurrentVenvPath(): boolean {
-  const ryeVenvPath = `${venvPath}${path.sep}rye-venv.json`
+  const ryeVenvPath = `${VENV_PATH}${path.sep}rye-venv.json`
   const ryeVenv = JSON.parse(fs.readFileSync(ryeVenvPath, 'utf8'))
   core.info(
-    `Checking if the cached .venv matches the current path: ${venvPath}`
+    `Checking if the cached .venv matches the current path: ${VENV_PATH}`
   )
-  if (ryeVenv.venv_path !== venvPath) {
+  if (ryeVenv.venv_path !== VENV_PATH) {
     core.warning(
       `The .venv in the cache cannot be used because it is from another location: ${ryeVenv.venv_path}`
     )
@@ -105,7 +106,7 @@ async function restoreCacheLocal(
 ): Promise<string | undefined> {
   const storedCache = `${cacheLocalStoragePath}${path.sep}${primaryKey}`
   if (await exists(storedCache)) {
-    await cp(`${storedCache}${path.sep}.venv`, venvPath, {
+    await cp(`${storedCache}${path.sep}.venv`, VENV_PATH, {
       recursive: true
     })
     return primaryKey
