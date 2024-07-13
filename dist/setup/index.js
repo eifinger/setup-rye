@@ -84095,7 +84095,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.restoreCache = exports.venvPath = exports.workingDir = exports.workingDirInput = exports.STATE_CACHE_MATCHED_KEY = exports.STATE_CACHE_KEY = void 0;
+exports.restoreCache = exports.VENV_PATH = exports.WORKING_DIR_PATH = exports.STATE_CACHE_MATCHED_KEY = exports.STATE_CACHE_KEY = void 0;
 const crypto = __importStar(__nccwpck_require__(6113));
 const cache = __importStar(__nccwpck_require__(7799));
 const glob = __importStar(__nccwpck_require__(8090));
@@ -84107,12 +84107,13 @@ const io_util_1 = __nccwpck_require__(1962);
 const utils_1 = __nccwpck_require__(1314);
 exports.STATE_CACHE_KEY = 'cache-key';
 exports.STATE_CACHE_MATCHED_KEY = 'cache-matched-key';
-exports.workingDirInput = core.getInput('working-directory');
-exports.workingDir = exports.workingDirInput ? `${path_1.default.sep}${exports.workingDirInput}` : '';
-exports.venvPath = `${process.env['GITHUB_WORKSPACE']}${exports.workingDir}${path_1.default.sep}.venv`;
+const workingDirInput = core.getInput('working-directory');
+const workingDir = workingDirInput ? `${path_1.default.sep}${workingDirInput}` : '';
+exports.WORKING_DIR_PATH = `${process.env['GITHUB_WORKSPACE']}${workingDir}`;
+exports.VENV_PATH = `${process.env['GITHUB_WORKSPACE']}${workingDir}${path_1.default.sep}.venv`;
 const CACHE_VERSION = '5';
 const cacheLocalStoragePath = `${core.getInput('cache-local-storage-path')}` || '';
-const cacheDependencyPath = `${process.env['GITHUB_WORKSPACE']}${exports.workingDir}${path_1.default.sep}${path_1.default.sep}requirements**.lock`;
+const cacheDependencyPath = `${process.env['GITHUB_WORKSPACE']}${workingDir}${path_1.default.sep}${path_1.default.sep}requirements**.lock`;
 function restoreCache(cachePrefix, version) {
     return __awaiter(this, void 0, void 0, function* () {
         const cacheKey = yield computeKeys(cachePrefix, version);
@@ -84124,7 +84125,7 @@ function restoreCache(cachePrefix, version) {
         try {
             matchedKey = cacheLocalStoragePath
                 ? yield restoreCacheLocal(cacheKey)
-                : yield cache.restoreCache([exports.venvPath], cacheKey);
+                : yield cache.restoreCache([exports.VENV_PATH], cacheKey);
         }
         catch (err) {
             const message = err.message;
@@ -84140,8 +84141,8 @@ exports.restoreCache = restoreCache;
 function computeKeys(cachePrefix, version) {
     return __awaiter(this, void 0, void 0, function* () {
         const cacheDependencyPathHash = yield glob.hashFiles(cacheDependencyPath);
-        const workingDirHash = exports.workingDir
-            ? `-${crypto.createHash('sha256').update(exports.workingDir).digest('hex')}`
+        const workingDirHash = workingDir
+            ? `-${crypto.createHash('sha256').update(workingDir).digest('hex')}`
             : '';
         const prefix = cachePrefix ? `${cachePrefix}-` : '';
         return `${prefix}setup-rye-${CACHE_VERSION}-${process.env['RUNNER_OS']}-${(0, utils_1.getArch)()}-rye-${version}${workingDirHash}-${cacheDependencyPathHash}`;
@@ -84155,7 +84156,7 @@ function handleMatchResult(matchedKey, primaryKey) {
     }
     const venvPathMatch = doesCachedVenvPathMatchCurrentVenvPath();
     if (!venvPathMatch) {
-        fs.rmSync(exports.venvPath, { recursive: true });
+        fs.rmSync(exports.VENV_PATH, { recursive: true });
         core.setOutput('cache-hit', false);
         return;
     }
@@ -84164,10 +84165,10 @@ function handleMatchResult(matchedKey, primaryKey) {
     core.setOutput('cache-hit', true);
 }
 function doesCachedVenvPathMatchCurrentVenvPath() {
-    const ryeVenvPath = `${exports.venvPath}${path_1.default.sep}rye-venv.json`;
+    const ryeVenvPath = `${exports.VENV_PATH}${path_1.default.sep}rye-venv.json`;
     const ryeVenv = JSON.parse(fs.readFileSync(ryeVenvPath, 'utf8'));
-    core.info(`Checking if the cached .venv matches the current path: ${exports.venvPath}`);
-    if (ryeVenv.venv_path !== exports.venvPath) {
+    core.info(`Checking if the cached .venv matches the current path: ${exports.VENV_PATH}`);
+    if (ryeVenv.venv_path !== exports.VENV_PATH) {
         core.warning(`The .venv in the cache cannot be used because it is from another location: ${ryeVenv.venv_path}`);
         return false;
     }
@@ -84177,7 +84178,7 @@ function restoreCacheLocal(primaryKey) {
     return __awaiter(this, void 0, void 0, function* () {
         const storedCache = `${cacheLocalStoragePath}${path_1.default.sep}${primaryKey}`;
         if (yield (0, io_util_1.exists)(storedCache)) {
-            yield (0, io_1.cp)(`${storedCache}${path_1.default.sep}.venv`, exports.venvPath, {
+            yield (0, io_1.cp)(`${storedCache}${path_1.default.sep}.venv`, exports.VENV_PATH, {
                 recursive: true
             });
             return primaryKey;
@@ -84298,10 +84299,13 @@ function installRye(downloadPath, arch, version) {
         core.debug(`Created temporary directory ${tempDir}`);
         // Cache first to get the correct path
         const cachedPath = yield tc.cacheDir(tempDir, utils_1.toolsCacheName, version, arch);
+        const toolchainVersion = yield determineToolchainVersion();
+        const env = toolchainVersion
+            ? Object.assign(Object.assign({}, process.env), { RYE_HOME: cachedPath, RYE_TOOLCHAIN_VERSION: toolchainVersion }) : Object.assign(Object.assign({}, process.env), { RYE_HOME: cachedPath });
         const options = {
             cwd: cachedPath,
             silent: !core.isDebug(),
-            env: Object.assign(Object.assign({}, process.env), { RYE_HOME: cachedPath })
+            env: env
         };
         core.info(`Installing Rye into ${cachedPath}`);
         const execArgs = ['self', 'install', '--yes'];
@@ -84310,6 +84314,18 @@ function installRye(downloadPath, arch, version) {
         }
         yield exec.exec(downloadPath, execArgs, options);
         return cachedPath;
+    });
+}
+function determineToolchainVersion() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const pythonVersionFile = `${restore_cache_1.WORKING_DIR_PATH}${path.sep}.python-version`;
+        if (fs.existsSync(pythonVersionFile)) {
+            const toolchainVersion = yield fs.promises.readFile(pythonVersionFile, 'utf8');
+            core.info(`Determined RYE_TOOLCHAIN_VERSION: ${toolchainVersion.trim()}`);
+            return toolchainVersion.trim();
+        }
+        core.warning(`No .python-version file found, using default RYE_TOOLCHAIN_VERSION`);
+        return;
     });
 }
 function createConfigBackup(installedPath) {
