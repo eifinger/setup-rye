@@ -14,7 +14,7 @@ Example workflow can be found [in this repo](https://github.com/eifinger/pywaze/
 
 ```yaml
 - name: Install the latest version of rye
-  uses: eifinger/setup-rye@v3
+  uses: eifinger/setup-rye@v4
 ```
 
 ### Install latest version
@@ -30,7 +30,7 @@ If you don't want to wait for a new release of this action you can use use `vers
 
 ```yaml
 - name: Install a specific version
-  uses: eifinger/setup-rye@v3
+  uses: eifinger/setup-rye@v4
   with:
     version: 'latest'
 ```
@@ -41,7 +41,7 @@ You can also specify a specific version of rye
 
 ```yaml
 - name: Install a specific version
-  uses: eifinger/setup-rye@v3
+  uses: eifinger/setup-rye@v4
   with:
     version: '0.12.0'
 ```
@@ -55,7 +55,7 @@ of the rye repo.
 
 ```yaml
 - name: Install a specific version and validate the checksum
-  uses: eifinger/setup-rye@v3
+  uses: eifinger/setup-rye@v4
   with:
     version: '0.12.0'
     checksum: 'c48d850e90649d868d512f60af67c74aa844d80f951fdb38589220662e709da7'
@@ -72,7 +72,7 @@ You can optionally define a custom cache key prefix.
 ```yaml
 - name: Enable caching and define a custom cache key prefix
   id: setup-rye
-  uses: eifinger/setup-rye@v3
+  uses: eifinger/setup-rye@v4
   with:
     enable-cache: true
     cache-prefix: 'optional-prefix'
@@ -94,7 +94,7 @@ relative to the repository root. This is useful for monorepos.
 
 ```yaml
 - name: Enable caching and define a working directory
-  uses: eifinger/setup-rye@v3
+  uses: eifinger/setup-rye@v4
   with:
     enable-cache: true
     working-directory: 'path/to/rye/project'
@@ -107,7 +107,7 @@ This can be useful if you are on a self hosted runner and want to save time and 
 
 ```yaml
 - name: Enable caching and define a custom cache path
-  uses: eifinger/setup-rye@v3
+  uses: eifinger/setup-rye@v4
   with:
     enable-cache: true
     cache-local-storage-path: '/path/to/cache'
@@ -126,7 +126,7 @@ To avoid hitting the error `API rate limit exceeded` you can supply a GitHub tok
 
 ```yaml
 - name: Install rye and supply a GitHub token
-  uses: eifinger/setup-rye@v3
+  uses: eifinger/setup-rye@v4
   with:
     github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
