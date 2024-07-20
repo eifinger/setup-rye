@@ -131,16 +131,33 @@ To avoid hitting the error `API rate limit exceeded` you can supply a GitHub tok
     github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-## Limitations
-
-1. Currently only Linux and macOS is supported see [issue #10](https://github.com/eifinger/setup-rye/issues/10)
-
 ## How it works
 
 This action downloads rye from the releases of the [rye repo](https://github.com/astral-sh/rye) and uses the [GitHub Actions Toolkit](https://github.com/actions/toolkit) to cache it as a tool to speed up consecutive runs especially on self-hosted runners.
 
 The installed version of rye is then added to the runner path so other steps can just use it by calling `rye`.
 To prevent interfering the other rye processes on the same runner `RYE_HOME` gets set to the repository roots parent and is cleaned up after a workflow run.
+
+## FAQ
+
+### Do I still need actions/setup-python when using this action?
+
+No! This action was modelled as a drop-in replacement for `actions/setup-python` when using rye.
+
+A simple example workflow could look like this:
+
+```yaml
+- name: Checkout the repository
+  uses: actions/checkout@v2
+- name: Install the latest version of rye
+  uses: eifinger/setup-rye@v4
+  with:
+    enable-cache: true
+- name: Sync dependencies
+  run: rye sync
+- name: Lint
+  run: rye lint
+```
 
 ---
 
