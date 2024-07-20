@@ -4,7 +4,7 @@ author: 'eifinger'
 inputs:
   version: 
     description: 'The version of rye to install'
-    default: '0.36.0'
+    default: '0.37.0'
   checksum:
     description: 'The checksum of the rye version to install'
     required: false
