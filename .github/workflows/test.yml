@@ -36,6 +36,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - run: |
+          ls /opt/hostedtoolcache/uv/0.3.2/x86_64
           which rye
   test-specific-version:
     runs-on: ${{ matrix.os }}
