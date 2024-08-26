@@ -8,6 +8,9 @@ Set up your GitHub Actions workflow with a specific version of [rye](https://rye
 * Optional: Cache the virtual environment created by rye
 * Optional: Verify the checksum of the downloaded rye executable
 
+> [!TIP]
+> Want to switch to [uv](https://docs.astral.sh/uv)? Check out [eifinger/setup-uv](https://github.com/eifinger/setup-uv)
+
 ## Usage
 
 Example workflow can be found [in this repo](https://github.com/eifinger/pywaze/blob/main/.github/workflows/ci.yml)
