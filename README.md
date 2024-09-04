@@ -9,7 +9,7 @@ Set up your GitHub Actions workflow with a specific version of [rye](https://rye
 * Optional: Verify the checksum of the downloaded rye executable
 
 > [!TIP]
-> Want to switch to [uv](https://docs.astral.sh/uv)? Check out [eifinger/setup-uv](https://github.com/eifinger/setup-uv)
+> Want to switch to [uv](https://docs.astral.sh/uv)? Check out [astral-sh/setup-uv](https://github.com/astral-sh/setup-uv)
 
 ## Usage
 
