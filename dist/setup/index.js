@@ -84336,11 +84336,21 @@ function installRye(downloadPath, arch, version) {
 }
 function determineToolchainVersion() {
     return __awaiter(this, void 0, void 0, function* () {
+        const supportedMinorVersions = ['9', '10', '11', '12'];
         const pythonVersionFile = `${restore_cache_1.WORKING_DIR_PATH}${path.sep}.python-version`;
         if (fs.existsSync(pythonVersionFile)) {
-            const toolchainVersion = yield fs.promises.readFile(pythonVersionFile, 'utf8');
-            core.info(`Determined RYE_TOOLCHAIN_VERSION: ${toolchainVersion.trim()}`);
-            return toolchainVersion.trim();
+            const fileContent = yield fs.promises.readFile(pythonVersionFile, 'utf8');
+            const toolchainVersion = fileContent.trim();
+            if (toolchainVersion.startsWith('cpython@3') ||
+                toolchainVersion.startsWith('3')) {
+                const minorVersion = toolchainVersion.split('.')[1];
+                if (supportedMinorVersions.includes(minorVersion)) {
+                    core.info(`Determined RYE_TOOLCHAIN_VERSION: ${toolchainVersion}`);
+                    return toolchainVersion;
+                }
+            }
+            core.warning(`Unsupported version in .python-version: ${toolchainVersion}, using default RYE_TOOLCHAIN_VERSION`);
+            return;
         }
         core.warning(`No .python-version file found, using default RYE_TOOLCHAIN_VERSION`);
         return;
