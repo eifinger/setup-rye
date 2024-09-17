@@ -128,14 +128,25 @@ async function installRye(
 }
 
 async function determineToolchainVersion(): Promise<string | void> {
+  const supportedMinorVersions = ['9', '10', '11', '12']
   const pythonVersionFile = `${WORKING_DIR_PATH}${path.sep}.python-version`
   if (fs.existsSync(pythonVersionFile)) {
-    const toolchainVersion = await fs.promises.readFile(
-      pythonVersionFile,
-      'utf8'
+    const fileContent = await fs.promises.readFile(pythonVersionFile, 'utf8')
+    const toolchainVersion = fileContent.trim()
+    if (
+      toolchainVersion.startsWith('cpython@3') ||
+      toolchainVersion.startsWith('3')
+    ) {
+      const minorVersion = toolchainVersion.split('.')[1]
+      if (supportedMinorVersions.includes(minorVersion)) {
+        core.info(`Determined RYE_TOOLCHAIN_VERSION: ${toolchainVersion}`)
+        return toolchainVersion
+      }
+    }
+    core.warning(
+      `Unsupported version in .python-version: ${toolchainVersion}, using default RYE_TOOLCHAIN_VERSION`
     )
-    core.info(`Determined RYE_TOOLCHAIN_VERSION: ${toolchainVersion.trim()}`)
-    return toolchainVersion.trim()
+    return
   }
   core.warning(
     `No .python-version file found, using default RYE_TOOLCHAIN_VERSION`
