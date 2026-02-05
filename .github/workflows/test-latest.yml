@@ -17,7 +17,7 @@ jobs:
         os: [ubuntu-latest, macos-latest, macos-14, oracle-aarch64]
         enable-cache: [true, false]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Should not be on path
         run: |
           if ! which rye;
@@ -46,7 +46,7 @@ jobs:
   test-latest-without-github-token:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Setup rye
         uses: ./
         with:
@@ -60,7 +60,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, macos-14, oracle-aarch64]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Determine expected python version
         id: determine-expected-python-version
         run: |
